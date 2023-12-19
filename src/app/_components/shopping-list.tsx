@@ -1,6 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader } from "@/components/ui/card";
 import { ShareDialog } from "./share-dialog";
+import CreateShoppingListDialog from "./create-shopping-list-dialog";
+import Link from "next/link";
 
 const owner = {
   id: "99",
@@ -109,6 +111,9 @@ export function ShoppingList() {
             })}
           </div>
         </div>
+        <div className="flex items-center justify-center p-4">
+          <CreateShoppingListDialog />
+        </div>
       </main>
     </>
   );
@@ -118,10 +123,12 @@ interface ShoppingListItemProps {
   shoppingList: {
     id: string;
     name: string;
+    description?: string;
     owner: {
       id: string;
       name: string;
       email: string;
+
       image?: string;
     };
     collaborators: {
@@ -141,9 +148,18 @@ export function ShoppingListItem({ shoppingList }: ShoppingListItemProps) {
           <div className="flex items-center justify-between">
             <div className="flex flex-col items-center space-x-1 sm:flex-row sm:space-x-2">
               <div>
-                <h2 className="text-base font-semibold sm:text-lg">
-                  {shoppingList.name}
-                </h2>
+                <Link href={`/list/${shoppingList.id}`}>
+                  <div>
+                    <h2 className="text-base font-semibold sm:text-lg">
+                      {shoppingList.name}
+                    </h2>
+                    <div className="line-clamp-3 pb-4">
+                      <p className="text-sm text-gray-500 sm:text-base">
+                        {shoppingList.description}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
                 <div className="mt-1 flex gap-1 sm:mt-2 sm:gap-2">
                   {shoppingList.collaborators.slice(0, 3).map((c, index) => (
                     <Badge key={index}>{c.name}</Badge>
@@ -156,6 +172,7 @@ export function ShoppingListItem({ shoppingList }: ShoppingListItemProps) {
                 </div>
               </div>
             </div>
+
             <div>
               <ShareDialog
                 owner={shoppingList.owner}

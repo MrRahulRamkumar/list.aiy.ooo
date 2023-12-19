@@ -2,16 +2,17 @@ import { CreatePost } from "@/app/_components/create-post";
 import { getServerAuthSession } from "@/server/auth";
 import { api } from "@/trpc/server";
 import { ShoppingList } from "./_components/shopping-list";
+import { Landing } from "./_components/landing";
 
 export default async function Home() {
-  // const hello = await api.post.hello.query({ text: "from tRPC" });
-  // const session = await getServerAuthSession();
+  const hello = await api.post.hello.query({ text: "from tRPC" });
+  const session = await getServerAuthSession();
 
-  return (
-    <div>
-      <ShoppingList />
-    </div>
-  );
+  if (!session?.user) {
+    return <Landing />;
+  }
+
+  return <ShoppingList />;
 }
 
 // async function CrudShowcase() {

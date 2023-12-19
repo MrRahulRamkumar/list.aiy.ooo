@@ -1,7 +1,5 @@
-"use client";
-
-import { useState } from "react";
-import { ShoppingListItem } from "./shopping-list-item";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader } from "@/components/ui/card";
 import { ShareDialog } from "./share-dialog";
 
 const owner = {
@@ -91,16 +89,8 @@ const shoppingLists = [
 ];
 
 export function ShoppingList() {
-  const [openShareDialog, setOpenShareDialog] = useState(false);
-
   return (
     <>
-      <ShareDialog
-        owner={owner}
-        collaborators={collaborators}
-        open={openShareDialog}
-        setOpen={setOpenShareDialog}
-      />
       <main className="w-full py-4 sm:py-6 md:py-12">
         <div className="container mx-auto grid max-w-sm gap-4 px-2 sm:max-w-md sm:gap-6 sm:px-4 md:max-w-xl md:gap-8 md:px-6 lg:max-w-none">
           <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-4 md:gap-8">
@@ -115,17 +105,66 @@ export function ShoppingList() {
           </div>
           <div className="grid gap-4 sm:gap-6 md:gap-8">
             {shoppingLists.map((sl) => {
-              return (
-                <ShoppingListItem
-                  setOpenShareDialog={setOpenShareDialog}
-                  shoppingList={sl}
-                  collaborators={sl.collaborators}
-                />
-              );
+              return <ShoppingListItem shoppingList={sl} />;
             })}
           </div>
         </div>
       </main>
     </>
+  );
+}
+
+interface ShoppingListItemProps {
+  shoppingList: {
+    id: string;
+    name: string;
+    owner: {
+      id: string;
+      name: string;
+      email: string;
+      image?: string;
+    };
+    collaborators: {
+      id: string;
+      name: string;
+      email: string;
+      image?: string;
+    }[];
+  };
+}
+
+export function ShoppingListItem({ shoppingList }: ShoppingListItemProps) {
+  return (
+    <div key={shoppingList.id}>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col items-center space-x-1 sm:flex-row sm:space-x-2">
+              <div>
+                <h2 className="text-base font-semibold sm:text-lg">
+                  {shoppingList.name}
+                </h2>
+                <div className="mt-1 flex gap-1 sm:mt-2 sm:gap-2">
+                  {shoppingList.collaborators.slice(0, 3).map((c, index) => (
+                    <Badge key={index}>{c.name}</Badge>
+                  ))}
+                  {shoppingList.collaborators.length > 3 && (
+                    <Badge variant={"outline"}>
+                      +{shoppingList.collaborators.length - 3} more
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div>
+              <ShareDialog
+                owner={shoppingList.owner}
+                collaborators={shoppingList.collaborators}
+              />
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+    </div>
   );
 }

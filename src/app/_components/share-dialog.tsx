@@ -1,19 +1,18 @@
-"use client";
-
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DialogTitle,
   DialogHeader,
   DialogContent,
   Dialog,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Copy } from "lucide-react";
-import { ShareDialogCollaboratorListItem } from "./share-dialog-collaborator-list-item";
+import { Copy, Send } from "lucide-react";
 
 interface ShareDialogProps {
-  open: boolean;
-  setOpen: (isOpen: boolean) => void;
   owner: {
     id: string;
     name: string;
@@ -28,14 +27,14 @@ interface ShareDialogProps {
   }[];
 }
 
-export function ShareDialog({
-  open,
-  setOpen,
-  owner,
-  collaborators,
-}: ShareDialogProps) {
+export function ShareDialog({ owner, collaborators }: ShareDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <Send />
+        </Button>
+      </DialogTrigger>
       <DialogContent className="space-y-4 p-4">
         <DialogHeader>
           <DialogTitle>Share this Shopping List</DialogTitle>
@@ -72,10 +71,50 @@ export function ShareDialog({
             );
           })}
         </div>
-        <Button onClick={() => setOpen(false)} className="w-full">
-          Done
-        </Button>
+        <DialogFooter className="sm:justify-start">
+          <DialogClose asChild>
+            <Button type="button" className="w-full">
+              Done
+            </Button>
+          </DialogClose>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+interface ShareDialogCollaboratorListItemProps {
+  id: string;
+  name: string;
+  email: string;
+  image?: string;
+  isOwner?: boolean;
+}
+
+export function ShareDialogCollaboratorListItem({
+  id,
+  name,
+  email,
+  image,
+  isOwner,
+}: ShareDialogCollaboratorListItemProps) {
+  return (
+    <div key={id} className="flex items-center justify-between space-x-2">
+      <div className="flex items-center space-x-2">
+        <Avatar>
+          {image && <AvatarImage src={image} />}
+          <AvatarFallback>{name.charAt(0).toLocaleUpperCase()}</AvatarFallback>
+        </Avatar>
+        <div>
+          <p>{name}</p>
+          <p className="text-sm text-gray-500">{email}</p>
+        </div>
+      </div>
+      {isOwner && (
+        <span className="rounded bg-green-500 px-2 py-1 text-xs text-white">
+          Owner
+        </span>
+      )}
+    </div>
   );
 }

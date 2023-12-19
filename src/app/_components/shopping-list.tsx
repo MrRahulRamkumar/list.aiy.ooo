@@ -142,46 +142,44 @@ interface ShoppingListItemProps {
 
 export function ShoppingListItem({ shoppingList }: ShoppingListItemProps) {
   return (
-    <div key={shoppingList.id}>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col items-center space-x-1 sm:flex-row sm:space-x-2">
-              <div>
-                <Link href={`/list/${shoppingList.id}`}>
-                  <div>
-                    <h2 className="text-base font-semibold sm:text-lg">
-                      {shoppingList.name}
-                    </h2>
-                    <div className="line-clamp-3 pb-4">
-                      <p className="text-sm text-gray-500 sm:text-base">
-                        {shoppingList.description}
-                      </p>
-                    </div>
+    <Card key={shoppingList.id}>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col items-center space-x-1 sm:flex-row sm:space-x-2">
+            <div>
+              <Link href={`/list/${shoppingList.id}`}>
+                <div>
+                  <h2 className="text-base font-semibold sm:text-lg">
+                    {shoppingList.name}
+                  </h2>
+                  <div className="line-clamp-3 pb-4">
+                    <p className="text-sm text-gray-500 sm:text-base">
+                      {shoppingList.description}
+                    </p>
                   </div>
-                </Link>
-                <div className="mt-1 flex gap-1 sm:mt-2 sm:gap-2">
-                  {shoppingList.collaborators.slice(0, 3).map((c, index) => (
-                    <Badge key={index}>{c.name}</Badge>
-                  ))}
-                  {shoppingList.collaborators.length > 3 && (
-                    <Badge variant={"outline"}>
-                      +{shoppingList.collaborators.length - 3} more
-                    </Badge>
-                  )}
                 </div>
+              </Link>
+              <div className="mt-1 flex gap-1 sm:mt-2 sm:gap-2">
+                {shoppingList.collaborators.slice(0, 3).map((c, index) => (
+                  <Badge key={index}>{c.name}</Badge>
+                ))}
+                {shoppingList.collaborators.length > 3 && (
+                  <Badge variant={"outline"}>
+                    +{shoppingList.collaborators.length - 3} more
+                  </Badge>
+                )}
               </div>
             </div>
-
-            <div>
-              <ShareDialog
-                owner={shoppingList.owner}
-                collaborators={shoppingList.collaborators}
-              />
-            </div>
           </div>
-        </CardHeader>
-      </Card>
-    </div>
+
+          <div>
+            <ShareDialog
+              owner={shoppingList.owner}
+              collaborators={shoppingList.collaborators}
+            />
+          </div>
+        </div>
+      </CardHeader>
+    </Card>
   );
 }

@@ -12,7 +12,7 @@ export function Landing() {
               Collaborate on your shopping lists.
             </h2>
             <p className="max-w-[900px] text-gray-500 dark:text-gray-400 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              ShopTogether lets you and your family or friends manage shared
+              Shop together with your family or friends and manage shared
               shopping lists in real time. No more doubling up on items or
               forgetting the milk.
             </p>

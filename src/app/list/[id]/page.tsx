@@ -1,10 +1,87 @@
 import { CardTitle, CardHeader, CardContent, Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
-import { List } from "lucide-react";
-import { Folder } from "lucide-react";
+import AddToShoppingList from "@/app/_components/add-to-shopping-list";
 
-export default function Component() {
+const items = [
+  {
+    id: "1",
+    name: "Milk",
+    quantity: 2,
+    unit: "liters",
+    addedBy: {
+      name: "Jane Cooper",
+      id: "1",
+    },
+    checkedBy: {
+      name: "Jane Cooper",
+      id: "1",
+      timestamp: "3d ago",
+    },
+  },
+  {
+    id: "2",
+    name: "Eggs",
+    quantity: 12,
+    unit: "units",
+    addedBy: {
+      name: "Jane Cooper",
+      id: "1",
+    },
+    checkedBy: {
+      name: "Jane Cooper",
+      id: "1",
+      timestamp: "3d ago",
+    },
+  },
+  {
+    id: "3",
+    name: "Bread",
+    quantity: 1,
+    unit: "loaf",
+    addedBy: {
+      name: "Jane Cooper",
+      id: "1",
+    },
+    checkedBy: {
+      name: "Jane Cooper",
+      id: "1",
+      timestamp: "3d ago",
+    },
+  },
+  {
+    id: "4",
+    name: "Butter",
+    quantity: 1,
+    unit: "pack",
+    addedBy: {
+      name: "Jane Cooper",
+      id: "1",
+    },
+    checkedBy: {
+      name: "Jane Cooper",
+      id: "1",
+      timestamp: "3d ago",
+    },
+  },
+  {
+    id: "5",
+    name: "Cheese",
+    quantity: 1,
+    unit: "pack",
+    addedBy: {
+      name: "Jane Cooper",
+      id: "1",
+    },
+    checkedBy: {
+      name: "Jane Cooper",
+      id: "1",
+      timestamp: "3d ago",
+    },
+  },
+];
+
+export default function List() {
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
       <Card className="overflow-hidden rounded-lg shadow">
@@ -12,74 +89,79 @@ export default function Component() {
           <CardTitle className="text-lg font-medium leading-6 text-gray-900">
             Collaborative Shopping List
           </CardTitle>
-          <div>
-            <div className="mr-2 inline-flex justify-center rounded-full border border-transparent bg-indigo-600 p-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-              <List className="h-4 w-4" />
-            </div>
-            <div className="inline-flex justify-center rounded-full border border-transparent bg-green-600 p-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
-              <Folder className="h-4 w-4" />
-            </div>
-          </div>
         </CardHeader>
         <CardContent className="px-4 py-5 sm:p-6">
           <div className="flow-root">
-            <h2 className="mb-4 text-lg font-medium leading-6 text-gray-900">
-              Dairy
-            </h2>
             <ul className="-my-5 divide-y divide-gray-200">
-              <li className="py-4">
-                <div className="flex items-center space-x-4">
-                  <Checkbox className="text-indigo-600" id="item1" />
-                  <span className="block">
-                    <span className="text-sm font-medium text-gray-900">
-                      Eggs (12 numbers)
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      <br />
-                      Added by
-                      <Link
-                        className="font-medium text-indigo-600 hover:text-indigo-500"
-                        href="#"
-                      >
-                        Alice
-                      </Link>
-                    </span>
-                  </span>
-                </div>
-              </li>
-              <li className="py-4">
-                <div className="flex items-center space-x-4">
-                  <Checkbox checked className="text-indigo-600" id="item2" />
-                  <span className="block">
-                    <span className="text-sm font-medium text-gray-900">
-                      Milk (1 gallon)
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      <br />
-                      Added by
-                      <Link
-                        className="font-medium text-indigo-600 hover:text-indigo-500"
-                        href="#"
-                      >
-                        Bob
-                      </Link>
-                      <br />
-                      Checked by
-                      <Link
-                        className="font-medium text-indigo-600 hover:text-indigo-500"
-                        href="#"
-                      >
-                        Charlie
-                      </Link>
-                      on Dec 18, 2023
-                    </span>
-                  </span>
-                </div>
-              </li>
+              {items.map((item) => {
+                return <ListItem item={item} />;
+              })}
             </ul>
+          </div>
+          <br />
+          <div className="flex items-center justify-center p-4">
+            <AddToShoppingList />
           </div>
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+interface ListItemProps {
+  item: {
+    id: string;
+    name: string;
+    quantity: number;
+    unit: string;
+    addedBy: {
+      name: string;
+      id: string;
+    };
+    checkedBy?: {
+      name: string;
+      id: string;
+      timestamp: string;
+    };
+  };
+}
+
+function ListItem({
+  item: { id, name, quantity, unit, addedBy, checkedBy },
+}: ListItemProps) {
+  return (
+    <li key={id} className="py-4">
+      <div className="flex items-center space-x-4">
+        <Checkbox checked className="text-indigo-600" id="item2" />
+        <span className="block">
+          <span className="text-sm font-medium text-gray-900">
+            {`${name} (${quantity} ${unit})`}
+          </span>
+          <span className="text-sm text-gray-500">
+            <br />
+            {"Added by "}
+            <Link
+              className="font-medium text-indigo-600 hover:text-indigo-500"
+              href="#"
+            >
+              {addedBy.name}
+            </Link>
+            <br />
+            {checkedBy && (
+              <div>
+                {"Checked by "}
+                <Link
+                  className="font-medium text-indigo-600 hover:text-indigo-500"
+                  href="#"
+                >
+                  {checkedBy.name}
+                </Link>
+                {` ${checkedBy.timestamp}`}
+              </div>
+            )}
+          </span>
+        </span>
+      </div>
+    </li>
   );
 }

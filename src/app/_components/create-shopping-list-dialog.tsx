@@ -19,7 +19,7 @@ export default function CreateShoppingListDialog() {
           <Plus className="h-6 w-6" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="bottom" className="sm:max-w-[425px]">
+      <SheetContent side="top" className="sm:max-w-[425px]">
         <SheetHeader>
           <SheetTitle>Create List</SheetTitle>
         </SheetHeader>

@@ -1,16 +1,4 @@
-/**
- * v0 by Vercel.
- * @see https://v0.dev/t/Bqf370qXIFs
- */
 import { Button } from "@/components/ui/button";
-import {
-  DialogTrigger,
-  DialogTitle,
-  DialogDescription,
-  DialogHeader,
-  DialogContent,
-  Dialog,
-} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,23 +9,31 @@ import {
   Select,
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
+import {
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  Sheet,
+} from "@/components/ui/sheet";
 
 export default function AddToShoppingList() {
   return (
-    <Dialog>
-      <DialogTrigger asChild>
+    <Sheet>
+      <SheetTrigger asChild>
         <Button variant="outline">
           <Plus className="h-6 w-6" />
         </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Add Item</DialogTitle>
-          <DialogDescription>
+      </SheetTrigger>
+      <SheetContent side="top" className="sm:max-w-[425px]">
+        <SheetHeader>
+          <SheetTitle>Add Item</SheetTitle>
+          <SheetDescription>
             Fill in the details of the item you want to add to your shopping
             list.
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
         <form className="grid gap-4 py-4">
           <div className="grid items-center gap-2">
             <Label className="text-base" htmlFor="itemName">
@@ -77,7 +73,7 @@ export default function AddToShoppingList() {
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

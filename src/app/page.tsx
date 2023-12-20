@@ -2,15 +2,13 @@ import { CreatePost } from "@/app/_components/create-post";
 import { getServerAuthSession } from "@/server/auth";
 import { api } from "@/trpc/server";
 import { ShoppingList } from "./_components/shopping-list";
-import { Landing } from "./_components/landing";
+import { redirect } from "next/navigation";
 
 export default async function Home() {
   const hello = await api.post.hello.query({ text: "from tRPC" });
   const session = await getServerAuthSession();
 
-  if (!session?.user) {
-    return <Landing />;
-  }
+  if (!session?.user) redirect("/signIn");
 
   return <ShoppingList />;
 }

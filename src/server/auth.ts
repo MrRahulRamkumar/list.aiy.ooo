@@ -62,6 +62,16 @@ export const authOptions: NextAuthOptions = {
      * @see https://next-auth.js.org/providers/github
      */
   ],
+  theme: {
+    colorScheme: "light", // "auto" | "dark" | "light"
+    // brandColor: "", // Hex color code
+    logo: "https://picsum.photos/640/360", // Absolute URL to image
+    buttonText: "Test", // Hex color code
+  },
+  pages: {
+    signIn: "/signIn",
+    signOut: "/signOut",
+  },
 };
 
 /**

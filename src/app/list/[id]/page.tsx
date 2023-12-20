@@ -2,6 +2,8 @@ import { CardTitle, CardHeader, CardContent, Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import AddToShoppingList from "@/app/_components/add-to-shopping-list";
+import { getServerAuthSession } from "@/server/auth";
+import { redirect } from "next/navigation";
 
 const items = [
   {
@@ -81,7 +83,10 @@ const items = [
   },
 ];
 
-export default function List() {
+export default async function List() {
+  const session = await getServerAuthSession();
+  if (!session?.user) redirect("/signIn");
+
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
       <Card className="overflow-hidden rounded-lg shadow">

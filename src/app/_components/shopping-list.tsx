@@ -3,6 +3,8 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { ShareDialog } from "./share-dialog";
 import CreateShoppingListDialog from "./create-shopping-list-dialog";
 import Link from "next/link";
+import { LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const owner = {
   id: "99",
@@ -97,9 +99,17 @@ export function ShoppingList() {
         <div className="container mx-auto grid max-w-sm gap-4 px-2 sm:max-w-md sm:gap-6 sm:px-4 md:max-w-xl md:gap-8 md:px-6 lg:max-w-none">
           <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-4 md:gap-8">
             <div className="grid gap-1">
-              <h1 className="text-xl font-bold tracking-tight sm:text-2xl md:text-3xl">
-                Shopping Lists
-              </h1>
+              <div className="flex-cols flex">
+                <h1 className="text-xl font-bold tracking-tight sm:text-2xl md:text-3xl">
+                  Your Lists
+                </h1>
+                <Link className="px-1" href={"/api/auth/signout"}>
+                  <Button variant="ghost">
+                    <LogOut className="h-6 w-6" />
+                  </Button>
+                </Link>
+              </div>
+
               <p className="text-sm text-gray-500 dark:text-gray-400 sm:text-base">
                 Manage your shopping lists and collaborate with others.
               </p>

@@ -4,6 +4,8 @@ import Link from "next/link";
 import AddToShoppingList from "@/app/_components/add-to-shopping-list";
 import { getServerAuthSession } from "@/server/auth";
 import { redirect } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const items = [
   {
@@ -88,27 +90,35 @@ export default async function List() {
   if (!session?.user) redirect("/signIn");
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
-      <Card className="overflow-hidden rounded-lg shadow">
-        <CardHeader className="flex items-center justify-between px-4 py-5 sm:px-6">
-          <CardTitle className="text-lg font-medium leading-6 text-gray-900">
-            Collaborative Shopping List
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-4 py-5 sm:p-6">
-          <div className="flow-root">
-            <ul className="-my-5 divide-y divide-gray-200">
-              {items.map((item) => {
-                return <ListItem item={item} />;
-              })}
-            </ul>
-          </div>
-          <br />
-          <div className="flex items-center justify-center p-4">
-            <AddToShoppingList />
-          </div>
-        </CardContent>
-      </Card>
+    <div>
+      <Link href="/">
+        <Button className="ml-2 mt-4" variant="ghost">
+          <ChevronLeft className="h-8 w-8" />
+        </Button>
+      </Link>
+
+      <div className="mx-auto w-full max-w-2xl px-4 py-4 sm:px-6 lg:px-8">
+        <Card className="overflow-hidden rounded-lg shadow">
+          <CardHeader className="flex items-center justify-between px-4 py-5 sm:px-6">
+            <CardTitle className="text-lg font-medium leading-6 text-gray-900">
+              Collaborative Shopping List
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 py-5 sm:p-6">
+            <div className="flow-root">
+              <ul className="-my-5 divide-y divide-gray-200">
+                {items.map((item) => {
+                  return <ListItem item={item} />;
+                })}
+              </ul>
+            </div>
+            <br />
+            <div className="flex items-center justify-center p-4">
+              <AddToShoppingList />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

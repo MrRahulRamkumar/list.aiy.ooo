@@ -100,10 +100,10 @@ export function ShoppingList() {
           <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-4 md:gap-8">
             <div className="grid gap-1">
               <div className="flex-cols flex">
-                <h1 className="text-xl font-bold tracking-tight sm:text-2xl md:text-3xl">
+                <h1 className="pr-1 text-3xl font-bold tracking-tight">
                   Your Lists
                 </h1>
-                <Link className="px-1" href={"/api/auth/signout"}>
+                <Link href={"/api/auth/signout"}>
                   <Button variant="ghost">
                     <LogOut className="h-6 w-6" />
                   </Button>

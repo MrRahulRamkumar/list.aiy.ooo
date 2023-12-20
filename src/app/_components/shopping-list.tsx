@@ -155,7 +155,7 @@ export function ShoppingListItem({ shoppingList }: ShoppingListItemProps) {
     <Card key={shoppingList.id}>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <div className="flex flex-col items-center space-x-1 sm:flex-row sm:space-x-2">
+          <div className="hover:red-500 flex flex-col items-center space-x-1 sm:flex-row sm:space-x-2">
             <div>
               <Link href={`/list/${shoppingList.id}`}>
                 <div>

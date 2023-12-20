@@ -1,32 +1,28 @@
-/**
- * v0 by Vercel.
- * @see https://v0.dev/t/nl8esF7gGaS
- */
 import { Button } from "@/components/ui/button";
-import {
-  DialogTrigger,
-  DialogTitle,
-  DialogHeader,
-  DialogFooter,
-  DialogContent,
-  Dialog,
-} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 export default function CreateShoppingListDialog() {
   return (
-    <Dialog>
-      <DialogTrigger asChild>
+    <Sheet>
+      <SheetTrigger asChild>
         <Button variant="outline">
           <Plus className="h-6 w-6" />
         </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Create List</DialogTitle>
-        </DialogHeader>
+      </SheetTrigger>
+      <SheetContent side="bottom" className="sm:max-w-[425px]">
+        <SheetHeader>
+          <SheetTitle>Create List</SheetTitle>
+        </SheetHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
             <Label htmlFor="listName">List Name</Label>
@@ -40,12 +36,12 @@ export default function CreateShoppingListDialog() {
             />
           </div>
         </div>
-        <DialogFooter>
+        <SheetFooter>
           <Button className="w-full" type="submit">
             Create List
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

@@ -1,11 +1,12 @@
-import { CardTitle, CardHeader, CardContent, Card } from "@/components/ui/card";
+"use client";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AddToShoppingList } from "@/app/_components/add-to-shopping-list";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
-import AddToShoppingList from "@/app/_components/add-to-shopping-list";
-import { getServerAuthSession } from "@/server/auth";
+import { api } from "@/trpc/react";
 import { redirect } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Loading } from "@/app/_components/loading";
 
 const items = [
   {
@@ -85,40 +86,55 @@ const items = [
   },
 ];
 
-export default async function List() {
-  const session = await getServerAuthSession();
-  if (!session?.user) redirect("/signIn");
+interface ListProps {
+  userId: string;
+  listSlug: string;
+}
+
+export function List({ userId, listSlug }: ListProps) {
+  const { data: shoppingList, isLoading } = api.shoppingList.getList.useQuery({
+    userId,
+    slug: listSlug,
+  });
+
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  if (!shoppingList) {
+    redirect("/404");
+  }
 
   return (
-    <div>
-      <Link href="/">
-        <Button className="ml-2 mt-4" variant="ghost">
-          <ChevronLeft className="h-8 w-8" />
-        </Button>
-      </Link>
-
-      <div className="mx-auto w-full max-w-2xl px-4 py-4 sm:px-6 lg:px-8">
-        <Card className="overflow-hidden rounded-lg shadow">
-          <CardHeader className="flex items-center justify-between px-4 py-5 sm:px-6">
-            <CardTitle className="text-lg font-medium leading-6 text-gray-900">
-              Collaborative Shopping List
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 py-5 sm:p-6">
-            <div className="flow-root">
+    <div className="mx-auto w-full max-w-2xl px-4 py-4 sm:px-6 lg:px-8">
+      <Card className="overflow-hidden rounded-lg shadow">
+        <CardHeader className="flex items-center justify-between px-4 py-5 sm:px-6">
+          <CardTitle className="text-lg font-medium leading-6 text-gray-900">
+            {shoppingList.name}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-4 py-5 sm:p-6">
+          <div className="flow-root">
+            {shoppingList.items.length === 0 && (
+              <p className="text-center text-sm text-gray-500">
+                No items yet. Add items to your shopping list by clicking the
+                button below
+              </p>
+            )}
+            {shoppingList.items.length > 0 && (
               <ul className="-my-5 divide-y divide-gray-200">
                 {items.map((item) => {
                   return <ListItem item={item} />;
                 })}
               </ul>
-            </div>
-            <br />
-            <div className="flex items-center justify-center p-4">
-              <AddToShoppingList />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            )}
+          </div>
+          <br />
+          <div className="flex items-center justify-center p-4">
+            <AddToShoppingList />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

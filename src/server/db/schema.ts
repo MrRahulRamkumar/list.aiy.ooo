@@ -1,6 +1,7 @@
-import { relations, sql } from "drizzle-orm";
+import { type InferSelectModel, relations, sql } from "drizzle-orm";
 import {
   bigint,
+  datetime,
   index,
   int,
   mysqlTableCreator,
@@ -25,15 +26,110 @@ export const posts = mysqlTable(
     id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
     name: varchar("name", { length: 256 }),
     createdById: varchar("createdById", { length: 255 }).notNull(),
-    createdAt: timestamp("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
+    createdAt: datetime("createdAt", { mode: "date", fsp: 3 })
+      .default(sql`CURRENT_TIMESTAMP(3)`)
       .notNull(),
-    updatedAt: timestamp("updatedAt").onUpdateNow(),
+    updatedAt: datetime("updatedAt", { mode: "date", fsp: 3 })
+      .default(sql`CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)`)
+      .notNull(),
   },
   (example) => ({
     createdByIdIdx: index("createdById_idx").on(example.createdById),
     nameIndex: index("name_idx").on(example.name),
-  })
+  }),
+);
+
+export const shoppingLists = mysqlTable(
+  "shoppingList",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
+    slug: varchar("slug", { length: 255 }).notNull().unique(),
+    name: varchar("name", { length: 255 }).notNull(),
+    description: varchar("description", { length: 255 }),
+    createdById: varchar("createdById", { length: 255 }).notNull(),
+    createdAt: datetime("createdAt", { mode: "date", fsp: 3 })
+      .default(sql`CURRENT_TIMESTAMP(3)`)
+      .notNull(),
+    updatedAt: datetime("updatedAt", { mode: "date", fsp: 3 })
+      .default(sql`CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)`)
+      .notNull(),
+  },
+  (shoppingList) => ({
+    slugIdx: index("slug_idx").on(shoppingList.slug),
+    createdByIdIdx: index("createdById_idx").on(shoppingList.createdById),
+  }),
+);
+
+export const shoppingListCollaborators = mysqlTable(
+  "shoppingListCollaborator",
+  {
+    shoppingListId: bigint("shoppingListId", { mode: "number" }).notNull(),
+    userId: varchar("userId", { length: 255 }).notNull(),
+  },
+  (collaborator) => ({
+    primaryKey: primaryKey(collaborator.userId, collaborator.shoppingListId),
+  }),
+);
+
+export const shoppingListCollaboratorsRelations = relations(
+  shoppingListCollaborators,
+  ({ one }) => ({
+    shoppingList: one(shoppingLists, {
+      fields: [shoppingListCollaborators.shoppingListId],
+      references: [shoppingLists.id],
+    }),
+    user: one(users, {
+      fields: [shoppingListCollaborators.userId],
+      references: [users.id],
+    }),
+  }),
+);
+
+export const shoppingListsRelations = relations(
+  shoppingLists,
+  ({ one, many }) => ({
+    createdBy: one(users, {
+      fields: [shoppingLists.createdById],
+      references: [users.id],
+    }),
+    items: many(shoppingListItems),
+    collaborators: many(shoppingListCollaborators),
+  }),
+);
+
+export const shoppingListItems = mysqlTable("shoppingListItem", {
+  id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
+  shoppingListId: bigint("shoppingListId", { mode: "number" }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  quantity: int("quantity"),
+  unit: varchar("unit", { length: 255, enum: ["kg", "g", "l", "ml", "pcs"] }),
+  createdById: varchar("createdById", { length: 255 }).notNull(),
+  completedById: varchar("completedById", { length: 255 }),
+  completedAt: timestamp("completedAt", { mode: "date", fsp: 3 }),
+  createdAt: datetime("createdAt", { mode: "date", fsp: 3 })
+    .default(sql`CURRENT_TIMESTAMP(3)`)
+    .notNull(),
+  updatedAt: datetime("updatedAt", { mode: "date", fsp: 3 })
+    .default(sql`CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)`)
+    .notNull(),
+});
+
+export const shoppingListItemsRelations = relations(
+  shoppingListItems,
+  ({ one }) => ({
+    shoppingList: one(shoppingLists, {
+      fields: [shoppingListItems.shoppingListId],
+      references: [shoppingLists.id],
+    }),
+    createdBy: one(users, {
+      fields: [shoppingListItems.createdById],
+      references: [users.id],
+    }),
+    completedBy: one(users, {
+      fields: [shoppingListItems.completedById],
+      references: [users.id],
+    }),
+  }),
 );
 
 export const users = mysqlTable("user", {
@@ -50,6 +146,7 @@ export const users = mysqlTable("user", {
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   sessions: many(sessions),
+  shoppingLists: many(shoppingLists),
 }));
 
 export const accounts = mysqlTable(
@@ -72,7 +169,7 @@ export const accounts = mysqlTable(
   (account) => ({
     compoundKey: primaryKey(account.provider, account.providerAccountId),
     userIdIdx: index("userId_idx").on(account.userId),
-  })
+  }),
 );
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -90,7 +187,7 @@ export const sessions = mysqlTable(
   },
   (session) => ({
     userIdIdx: index("userId_idx").on(session.userId),
-  })
+  }),
 );
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
@@ -106,5 +203,15 @@ export const verificationTokens = mysqlTable(
   },
   (vt) => ({
     compoundKey: primaryKey(vt.identifier, vt.token),
-  })
+  }),
 );
+
+export type SelectShoppingList = InferSelectModel<typeof shoppingLists>;
+export type SelectShoppingListItem = InferSelectModel<typeof shoppingListItems>;
+export type SelectPost = InferSelectModel<typeof posts>;
+export type SelectUser = InferSelectModel<typeof users>;
+export type SelectAccount = InferSelectModel<typeof accounts>;
+export type SelectSession = InferSelectModel<typeof sessions>;
+export type SelectVerificationToken = InferSelectModel<
+  typeof verificationTokens
+>;

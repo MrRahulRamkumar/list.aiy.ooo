@@ -5,94 +5,13 @@ import CreateShoppingListDialog from "./create-shopping-list-dialog";
 import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { api } from "@/trpc/server";
+import { type SelectShoppingList, type SelectUser } from "@/server/db/schema";
 
-const owner = {
-  id: "99",
-  name: "Rahul",
-  email: "rahul@exmaple.com",
-  image: "https://picsum.photos/640/360",
-};
+export async function ShoppingList() {
+  const shoppingLists = await api.shoppingList.getShoppingLists.query();
+  console.log(shoppingLists[0]?.collaborators);
 
-const collaborators = [
-  {
-    id: "1",
-    name: "Alice",
-    email: "alice@example.com",
-    image: "https://picsum.photos/640/360",
-    isOwner: true,
-  },
-  {
-    id: "2",
-    name: "Bob",
-    email: "bob@example.com",
-    image: "https://picsum.photos/640/360",
-  },
-  {
-    id: "3",
-    name: "Charlie",
-    email: "charlie@example.com",
-    image: "https://picsum.photos/640/360",
-  },
-  {
-    id: "4",
-    name: "Alice",
-    email: "alice@example.com",
-    image: "https://picsum.photos/640/360",
-  },
-  {
-    id: "5",
-    name: "Bob",
-    email: "bob@example.com",
-    image: "https://picsum.photos/640/360",
-  },
-  {
-    id: "6",
-    name: "Charlie",
-    email: "charlie@example.com",
-    image: "https://picsum.photos/640/360",
-  },
-  {
-    id: "7",
-    name: "Alice",
-    email: "alice@example.com",
-    image: "https://picsum.photos/640/360",
-  },
-  {
-    id: "8",
-    name: "Bob",
-    email: "bob@example.com",
-    image: "https://picsum.photos/640/360",
-  },
-  {
-    id: "9",
-    name: "Charlie",
-    email: "charlie@example.com",
-    image: "https://picsum.photos/640/360",
-  },
-];
-
-const shoppingLists = [
-  {
-    id: "1",
-    name: "Groceries",
-    owner,
-    collaborators,
-  },
-  {
-    id: "2",
-    name: "Christmas Shopping",
-    owner,
-    collaborators,
-  },
-  {
-    id: "3",
-    name: "Birthday Shopping",
-    owner,
-    collaborators,
-  },
-];
-
-export function ShoppingList() {
   return (
     <>
       <main className="w-full py-4 sm:py-6 md:py-12">
@@ -115,11 +34,26 @@ export function ShoppingList() {
               </p>
             </div>
           </div>
-          <div className="grid gap-4 sm:gap-6 md:gap-8">
-            {shoppingLists.map((sl) => {
-              return <ShoppingListItem shoppingList={sl} />;
-            })}
-          </div>
+          {shoppingLists.length === 0 && (
+            <div className="flex items-center justify-center p-4">
+              <p className="text-xl text-gray-500">
+                No shopping lists, create one by clicking the button below
+              </p>
+            </div>
+          )}
+          {shoppingLists.length > 0 && (
+            <div className="grid gap-4 sm:gap-6 md:gap-8">
+              {shoppingLists.map((sl) => {
+                return (
+                  <ShoppingListItem
+                    shoppingList={sl}
+                    owner={sl.createdBy}
+                    collaborators={sl.collaborators}
+                  />
+                );
+              })}
+            </div>
+          )}
         </div>
         <div className="flex items-center justify-center p-4">
           <CreateShoppingListDialog />
@@ -130,34 +64,27 @@ export function ShoppingList() {
 }
 
 interface ShoppingListItemProps {
-  shoppingList: {
-    id: string;
-    name: string;
-    description?: string;
-    owner: {
-      id: string;
-      name: string;
-      email: string;
-
-      image?: string;
-    };
-    collaborators: {
-      id: string;
-      name: string;
-      email: string;
-      image?: string;
-    }[];
-  };
+  shoppingList: SelectShoppingList;
+  owner: SelectUser;
+  collaborators: {
+    userId: string;
+    shoppingListId: number;
+    user: SelectUser;
+  }[];
 }
 
-export function ShoppingListItem({ shoppingList }: ShoppingListItemProps) {
+export function ShoppingListItem({
+  shoppingList,
+  owner,
+  collaborators,
+}: ShoppingListItemProps) {
   return (
     <Card key={shoppingList.id}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="hover:red-500 flex flex-col items-center space-x-1 sm:flex-row sm:space-x-2">
             <div>
-              <Link href={`/list/${shoppingList.id}`}>
+              <Link href={`/list/${shoppingList.slug}`}>
                 <div>
                   <h2 className="text-base font-semibold sm:text-lg">
                     {shoppingList.name}
@@ -170,12 +97,12 @@ export function ShoppingListItem({ shoppingList }: ShoppingListItemProps) {
                 </div>
               </Link>
               <div className="mt-1 flex gap-1 sm:mt-2 sm:gap-2">
-                {shoppingList.collaborators.slice(0, 3).map((c, index) => (
-                  <Badge key={index}>{c.name}</Badge>
+                {collaborators.slice(0, 3).map((c, index) => (
+                  <Badge key={index}>{c.user.name}</Badge>
                 ))}
-                {shoppingList.collaborators.length > 3 && (
+                {collaborators.length > 3 && (
                   <Badge variant={"outline"}>
-                    +{shoppingList.collaborators.length - 3} more
+                    +{collaborators.length - 3} more
                   </Badge>
                 )}
               </div>
@@ -184,8 +111,9 @@ export function ShoppingListItem({ shoppingList }: ShoppingListItemProps) {
 
           <div>
             <ShareDialog
-              owner={shoppingList.owner}
-              collaborators={shoppingList.collaborators}
+              slug={shoppingList.slug}
+              owner={owner}
+              collaborators={collaborators}
             />
           </div>
         </div>

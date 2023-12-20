@@ -1,6 +1,9 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Plus } from "lucide-react";
 import {
   SelectValue,
   SelectTrigger,
@@ -8,7 +11,6 @@ import {
   SelectContent,
   Select,
 } from "@/components/ui/select";
-import { Plus } from "lucide-react";
 import {
   SheetTrigger,
   SheetContent,
@@ -18,7 +20,7 @@ import {
   Sheet,
 } from "@/components/ui/sheet";
 
-export default function AddToShoppingList() {
+export function AddToShoppingList() {
   return (
     <Sheet>
       <SheetTrigger asChild>

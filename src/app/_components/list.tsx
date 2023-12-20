@@ -92,10 +92,11 @@ interface ListProps {
 }
 
 export function List({ userId, listSlug }: ListProps) {
-  const { data: shoppingList, isLoading } = api.shoppingList.getList.useQuery({
-    userId,
-    slug: listSlug,
-  });
+  const { data: shoppingList, isLoading } =
+    api.shoppingList.getShoppingList.useQuery({
+      userId,
+      slug: listSlug,
+    });
 
   if (isLoading) {
     return <Loading />;

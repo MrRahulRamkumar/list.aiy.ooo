@@ -9,6 +9,7 @@ import {
   type SelectUser,
 } from "@/server/db/schema";
 import { useSession } from "next-auth/react";
+import clsx from "clsx";
 
 interface ListItemProps {
   slug: string;
@@ -34,7 +35,7 @@ export function ListItem({
     });
 
   return (
-    <li key={item.id} className="flex justify-between gap-x-6 py-5">
+    <li className="flex justify-between gap-x-6 py-5">
       <div className="flex gap-x-4">
         <div className="flex items-center justify-center">
           {completeShoppingListItem.isLoading && (
@@ -52,7 +53,11 @@ export function ListItem({
 
         <div className="min-w-0 flex-auto">
           <span className="block">
-            <span className="text-sm font-medium text-gray-900">
+            <span
+              className={clsx("`text-sm text-gray-900` font-medium", {
+                "text-gray-500 line-through": !!item.completedAt,
+              })}
+            >
               {`${item.name}${
                 item.quantity ? ` (${item.quantity} ${item.unit})` : ""
               }`}
@@ -60,26 +65,20 @@ export function ListItem({
             <span className="text-sm text-gray-500">
               <br />
               {"Added by "}
-              <Link
-                className="font-medium text-indigo-600 hover:text-indigo-500"
-                href="#"
-              >
+              <span className="font-medium text-fuchsia-400">
                 {createdBy.id === session.data?.user?.id && "You"}
                 {createdBy.id !== session.data?.user?.id &&
                   createdBy.name?.split(" ")[0]}
-              </Link>
+              </span>
               <br />
               {completedBy && (
                 <div>
                   {"Completed by "}
-                  <Link
-                    className="font-medium text-indigo-600 hover:text-indigo-500"
-                    href="#"
-                  >
+                  <span className="font-medium text-fuchsia-400">
                     {completedBy.id === session.data?.user?.id && "You"}
                     {completedBy.id !== session.data?.user?.id &&
                       completedBy.name?.split(" ")[0]}
-                  </Link>
+                  </span>
                   {item.completedAt &&
                     ` ${formatDistance(item.completedAt, new Date(), {
                       addSuffix: true,
@@ -91,7 +90,10 @@ export function ListItem({
         </div>
       </div>
       <div className="flex flex-col items-end justify-center">
-        <ListDropdownMenu />
+        <ListDropdownMenu
+          shoppingListSlug={slug}
+          shoppingListItemId={item.id}
+        />
       </div>
     </li>
   );

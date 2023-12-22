@@ -10,22 +10,6 @@ import { eq, sql } from "drizzle-orm";
 
 export const shoppingListRouter = createTRPCRouter({
   getShoppingLists: protectedProcedure.query(({ ctx }) => {
-    const shoppingListsQuery = ctx.db.query.shoppingLists
-      .findMany({
-        with: {
-          items: true,
-          createdBy: true,
-          collaborators: {
-            with: {
-              user: true,
-            },
-          },
-        },
-        where: eq(shoppingLists.createdById, ctx.session.user.id),
-      })
-      .toSQL();
-    console.log(shoppingListsQuery);
-
     return ctx.db.query.shoppingLists.findMany({
       with: {
         items: true,
@@ -49,6 +33,10 @@ export const shoppingListRouter = createTRPCRouter({
               createdBy: true,
               completedBy: true,
             },
+            orderBy: (items, { asc, desc }) => [
+              asc(items.completedAt),
+              desc(items.createdAt),
+            ],
           },
         },
         where: eq(shoppingLists.slug, input),
@@ -111,5 +99,15 @@ export const shoppingListRouter = createTRPCRouter({
       `;
 
       await ctx.db.execute(statement);
+      return { success: true };
+    }),
+  deleteShoppingListItem: protectedProcedure
+    .input(z.number())
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .delete(shoppingListItems)
+        .where(eq(shoppingListItems.id, input))
+        .execute();
+      return { success: true };
     }),
 });

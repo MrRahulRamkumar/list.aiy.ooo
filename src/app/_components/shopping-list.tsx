@@ -47,6 +47,7 @@ export async function ShoppingList() {
               {shoppingLists.map((sl) => {
                 return (
                   <ShoppingListItem
+                    key={sl.id.toString()}
                     shoppingList={sl}
                     owner={sl.createdBy}
                     collaborators={sl.collaborators}
@@ -80,7 +81,7 @@ export function ShoppingListItem({
   collaborators,
 }: ShoppingListItemProps) {
   return (
-    <Card key={shoppingList.id}>
+    <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="hover:red-500 flex flex-col items-center space-x-1 sm:flex-row sm:space-x-2">

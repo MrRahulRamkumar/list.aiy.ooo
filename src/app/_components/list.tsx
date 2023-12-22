@@ -4,12 +4,14 @@ import { api } from "@/trpc/react";
 import { redirect } from "next/navigation";
 import { Loading } from "@/app/_components/loading";
 import { ListItem } from "@/app/_components/list-item";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 interface ListProps {
   slug: string;
 }
 
 export function List({ slug }: ListProps) {
+  const [animationParent] = useAutoAnimate();
   const { data: shoppingList, isLoading } =
     api.shoppingList.getShoppingList.useQuery(slug);
 
@@ -38,10 +40,14 @@ export function List({ slug }: ListProps) {
               </p>
             )}
             {shoppingList.items.length > 0 && (
-              <ul className="-my-5 divide-y divide-gray-200">
+              <ul
+                ref={animationParent}
+                className="-my-5 divide-y divide-gray-200"
+              >
                 {shoppingList.items.map((item) => {
                   return (
                     <ListItem
+                      key={item.id.toString()}
                       slug={slug}
                       item={item}
                       completedBy={item.completedBy}

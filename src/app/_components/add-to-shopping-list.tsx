@@ -109,7 +109,7 @@ function AddToShoppingListForm({
             <FormItem>
               <FormLabel>Quantity</FormLabel>
               <FormControl>
-                <Input placeholder="1" {...field} />
+                <Input placeholder="-" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -121,7 +121,12 @@ function AddToShoppingListForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Unit</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select
+                disabled={form.getValues("quantity") === undefined}
+                required={form.getValues("quantity") !== undefined}
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="-" />
@@ -131,7 +136,7 @@ function AddToShoppingListForm({
                   <SelectItem value="kg">Kg</SelectItem>
                   <SelectItem value="g">g</SelectItem>
                   <SelectItem value="L">L</SelectItem>
-                  <SelectItem value="mL">mL</SelectItem>
+                  <SelectItem value="ml">mL</SelectItem>
                   <SelectItem value="pcs">Pcs</SelectItem>
                 </SelectContent>
               </Select>

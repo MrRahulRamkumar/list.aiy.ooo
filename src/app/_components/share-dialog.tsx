@@ -99,7 +99,9 @@ export function ShareDialog({ slug, owner, collaborators }: ShareSheetProps) {
           <div className="h-60 space-y-4 overflow-y-scroll rounded-md border border-gray-200 p-2">
             <ul className="list-none space-y-4">
               {collaborators.map((c) => {
-                return <ShareSheetCollaboratorListItem {...c.user} />;
+                return (
+                  <ShareSheetCollaboratorListItem key={c.userId} {...c.user} />
+                );
               })}
             </ul>
           </div>
@@ -117,16 +119,12 @@ export function ShareDialog({ slug, owner, collaborators }: ShareSheetProps) {
 }
 
 export function ShareSheetCollaboratorListItem({
-  id,
   name,
   email,
   image,
 }: SelectUser) {
   return (
-    <li
-      key={id}
-      className="flex items-center space-x-2 rounded-md p-2 hover:bg-gray-100"
-    >
+    <li className="flex items-center space-x-2 rounded-md p-2 hover:bg-gray-100">
       <Avatar>
         {image && <AvatarImage src={image} />}
         <AvatarFallback>{name?.charAt(0).toLocaleUpperCase()}</AvatarFallback>

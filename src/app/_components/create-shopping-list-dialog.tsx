@@ -30,12 +30,22 @@ import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 
 const formSchema = z.object({
-  name: z.string().min(1, {
-    message: "Name must be at least 1 character.",
-  }),
-  description: z.string().min(1, {
-    message: "Description must be at least 1 character.",
-  }),
+  name: z
+    .string()
+    .min(1, {
+      message: "Name must be at least 1 character",
+    })
+    .max(255, {
+      message: "Name must be less than 255 characters",
+    }),
+  description: z
+    .string()
+    .min(1, {
+      message: "Description must be at least 1 character",
+    })
+    .max(255, {
+      message: "Description must be less than 255 characters",
+    }),
 });
 
 interface CreateShoppingListFormProps {
@@ -132,7 +142,7 @@ export function CreateShoppingListDialog() {
         </SheetHeader>
         <CreateShoppingListForm setOpen={setOpen} />
         <SheetFooter>
-          <div className="grid w-full grid-cols-1 gap-2">
+          <div className="grid w-full grid-cols-1">
             <SheetClose>
               <Button className="mt-4 w-full" variant="outline">
                 Cancel

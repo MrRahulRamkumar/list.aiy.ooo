@@ -1,14 +1,33 @@
+"use client";
+
 import Link from "next/link";
-import { getServerAuthSession } from "@/server/auth";
 import { redirect } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { List } from "@/app/_components/list";
+import { useSession } from "next-auth/react";
+import { Loading } from "@/app/_components/loading";
 
-export default async function Page({ params }: { params: { slug: string } }) {
-  const session = await getServerAuthSession();
-  if (!session?.user) redirect("/signIn");
-  console.log(params);
+export default function Page({ params }: { params: { slug: string } }) {
+  const session = useSession();
+
+  if (session.status === "loading") {
+    return (
+      <div>
+        <Link href="/">
+          <Button className="mt-4" variant="ghost">
+            <ChevronLeft className="h-8 w-8" />
+          </Button>
+        </Link>
+        <Loading />
+      </div>
+    );
+  }
+
+  if (session.status === "unauthenticated") {
+    redirect("/signIn");
+  }
+
   return (
     <div>
       <Link href="/">
@@ -17,7 +36,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
         </Button>
       </Link>
 
-      <List userId={session.user.id} listSlug={params.slug} />
+      <List slug={params.slug} />
     </div>
   );
 }

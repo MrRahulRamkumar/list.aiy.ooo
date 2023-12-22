@@ -1,102 +1,26 @@
-"use client";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AddToShoppingList } from "@/app/_components/add-to-shopping-list";
+import { AddToShoppingListDialog } from "@/app/_components/add-to-shopping-list";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { api } from "@/trpc/react";
 import { redirect } from "next/navigation";
 import { Loading } from "@/app/_components/loading";
-
-const items = [
-  {
-    id: "1",
-    name: "Milk",
-    quantity: 2,
-    unit: "liters",
-    addedBy: {
-      name: "Jane Cooper",
-      id: "1",
-    },
-    checkedBy: {
-      name: "Jane Cooper",
-      id: "1",
-      timestamp: "3d ago",
-    },
-  },
-  {
-    id: "2",
-    name: "Eggs",
-    quantity: 12,
-    unit: "units",
-    addedBy: {
-      name: "Jane Cooper",
-      id: "1",
-    },
-    checkedBy: {
-      name: "Jane Cooper",
-      id: "1",
-      timestamp: "3d ago",
-    },
-  },
-  {
-    id: "3",
-    name: "Bread",
-    quantity: 1,
-    unit: "loaf",
-    addedBy: {
-      name: "Jane Cooper",
-      id: "1",
-    },
-    checkedBy: {
-      name: "Jane Cooper",
-      id: "1",
-      timestamp: "3d ago",
-    },
-  },
-  {
-    id: "4",
-    name: "Butter",
-    quantity: 1,
-    unit: "pack",
-    addedBy: {
-      name: "Jane Cooper",
-      id: "1",
-    },
-    checkedBy: {
-      name: "Jane Cooper",
-      id: "1",
-      timestamp: "3d ago",
-    },
-  },
-  {
-    id: "5",
-    name: "Cheese",
-    quantity: 1,
-    unit: "pack",
-    addedBy: {
-      name: "Jane Cooper",
-      id: "1",
-    },
-    checkedBy: {
-      name: "Jane Cooper",
-      id: "1",
-      timestamp: "3d ago",
-    },
-  },
-];
+import { ListDropdownMenu } from "@/app/_components/list-drop-down-menu";
+import { Loader2 } from "lucide-react";
+import { formatDistance } from "date-fns";
+import {
+  type SelectShoppingListItem,
+  type SelectUser,
+} from "@/server/db/schema";
+import { useSession } from "next-auth/react";
 
 interface ListProps {
-  userId: string;
-  listSlug: string;
+  slug: string;
 }
 
-export function List({ userId, listSlug }: ListProps) {
+export function List({ slug }: ListProps) {
   const { data: shoppingList, isLoading } =
-    api.shoppingList.getShoppingList.useQuery({
-      userId,
-      slug: listSlug,
-    });
+    api.shoppingList.getShoppingList.useQuery(slug);
 
   if (isLoading) {
     return <Loading />;
@@ -124,15 +48,25 @@ export function List({ userId, listSlug }: ListProps) {
             )}
             {shoppingList.items.length > 0 && (
               <ul className="-my-5 divide-y divide-gray-200">
-                {items.map((item) => {
-                  return <ListItem item={item} />;
+                {shoppingList.items.map((item) => {
+                  return (
+                    <ListItem
+                      slug={slug}
+                      item={item}
+                      completedBy={item.completedBy}
+                      createdBy={item.createdBy}
+                    />
+                  );
                 })}
               </ul>
             )}
           </div>
           <br />
           <div className="flex items-center justify-center p-4">
-            <AddToShoppingList />
+            <AddToShoppingListDialog
+              shoppingListSlug={slug}
+              shoppingListId={shoppingList.id}
+            />
           </div>
         </CardContent>
       </Card>
@@ -141,58 +75,82 @@ export function List({ userId, listSlug }: ListProps) {
 }
 
 interface ListItemProps {
-  item: {
-    id: string;
-    name: string;
-    quantity: number;
-    unit: string;
-    addedBy: {
-      name: string;
-      id: string;
-    };
-    checkedBy?: {
-      name: string;
-      id: string;
-      timestamp: string;
-    };
-  };
+  slug: string;
+  item: SelectShoppingListItem;
+  createdBy: SelectUser;
+  completedBy?: SelectUser | null;
 }
 
-function ListItem({
-  item: { id, name, quantity, unit, addedBy, checkedBy },
-}: ListItemProps) {
+function ListItem({ slug, item, completedBy, createdBy }: ListItemProps) {
+  const utils = api.useUtils();
+  const session = useSession();
+
+  const completeShoppingListItem =
+    api.shoppingList.completeShoppingListItem.useMutation({
+      onSuccess: () => {
+        void utils.shoppingList.getShoppingList.invalidate(slug);
+      },
+    });
+
   return (
-    <li key={id} className="py-4">
-      <div className="flex items-center space-x-4">
-        <Checkbox checked className="text-indigo-600" id="item2" />
-        <span className="block">
-          <span className="text-sm font-medium text-gray-900">
-            {`${name} (${quantity} ${unit})`}
+    <li key={item.id} className="flex justify-between gap-x-6 py-5">
+      <div className="flex gap-x-4">
+        <div className="flex items-center justify-center">
+          {completeShoppingListItem.isLoading && (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          )}
+          {!completeShoppingListItem.isLoading && (
+            <Checkbox
+              checked={!!item.completedAt}
+              onClick={() => {
+                completeShoppingListItem.mutate(item.id);
+              }}
+            />
+          )}
+        </div>
+
+        <div className="min-w-0 flex-auto">
+          <span className="block">
+            <span className="text-sm font-medium text-gray-900">
+              {`${item.name}${
+                item.quantity ? ` (${item.quantity} ${item.unit})` : ""
+              }`}
+            </span>
+            <span className="text-sm text-gray-500">
+              <br />
+              {"Added by "}
+              <Link
+                className="font-medium text-indigo-600 hover:text-indigo-500"
+                href="#"
+              >
+                {createdBy.id === session.data?.user?.id && "You"}
+                {createdBy.id !== session.data?.user?.id &&
+                  createdBy.name?.split(" ")[0]}
+              </Link>
+              <br />
+              {completedBy && (
+                <div>
+                  {"Completed by "}
+                  <Link
+                    className="font-medium text-indigo-600 hover:text-indigo-500"
+                    href="#"
+                  >
+                    {completedBy.id === session.data?.user?.id && "You"}
+                    {completedBy.id !== session.data?.user?.id &&
+                      completedBy.name?.split(" ")[0]}
+                  </Link>
+                  {item.completedAt &&
+                    ` ${formatDistance(item.completedAt, new Date(), {
+                      addSuffix: true,
+                    })}`}
+                </div>
+              )}
+            </span>
           </span>
-          <span className="text-sm text-gray-500">
-            <br />
-            {"Added by "}
-            <Link
-              className="font-medium text-indigo-600 hover:text-indigo-500"
-              href="#"
-            >
-              {addedBy.name}
-            </Link>
-            <br />
-            {checkedBy && (
-              <div>
-                {"Checked by "}
-                <Link
-                  className="font-medium text-indigo-600 hover:text-indigo-500"
-                  href="#"
-                >
-                  {checkedBy.name}
-                </Link>
-                {` ${checkedBy.timestamp}`}
-              </div>
-            )}
-          </span>
-        </span>
+        </div>
+      </div>
+      <div className="flex flex-col items-end justify-center">
+        <ListDropdownMenu />
       </div>
     </li>
   );

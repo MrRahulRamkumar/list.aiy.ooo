@@ -97,12 +97,14 @@ export const shoppingListsRelations = relations(
   }),
 );
 
+export const unitValues = ["kg", "g", "L", "ml", "pcs"] as const;
+
 export const shoppingListItems = mysqlTable("shoppingListItem", {
   id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
   shoppingListId: bigint("shoppingListId", { mode: "number" }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   quantity: int("quantity"),
-  unit: varchar("unit", { length: 255, enum: ["kg", "g", "l", "ml", "pcs"] }),
+  unit: varchar("unit", { length: 255, enum: unitValues }),
   createdById: varchar("createdById", { length: 255 }).notNull(),
   completedById: varchar("completedById", { length: 255 }),
   completedAt: timestamp("completedAt", { mode: "date", fsp: 3 }),

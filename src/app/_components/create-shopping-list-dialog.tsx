@@ -1,11 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Loader2, Plus } from "lucide-react";
 import { api } from "@/trpc/react";
 import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import {
   Sheet,
   SheetClose,
@@ -15,70 +17,124 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 
-export default function CreateShoppingListDialog() {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+const formSchema = z.object({
+  name: z.string().min(1, {
+    message: "Name must be at least 1 character.",
+  }),
+  description: z.string().min(1, {
+    message: "Description must be at least 1 character.",
+  }),
+});
+
+interface CreateShoppingListFormProps {
+  setOpen: (open: boolean) => void;
+}
+function CreateShoppingListForm({ setOpen }: CreateShoppingListFormProps) {
   const router = useRouter();
+  const { toast } = useToast();
 
   const createShoppingList = api.shoppingList.createShoppingList.useMutation({
     onSuccess: () => {
       router.refresh();
-      setName("");
-      setDescription("");
+      setOpen(false);
+      toast({
+        title: "Hey yoo!",
+        description: "Shopping list created!",
+        action: <ToastAction altText="Okay">Okay</ToastAction>,
+      });
     },
   });
 
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+    },
+  });
+
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    createShoppingList.mutate(values);
+  }
+
   return (
-    <Sheet>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input placeholder="🎄 Christmas Shopping List" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Christmas gifts for the family"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button
+          disabled={createShoppingList.isLoading}
+          className="w-full"
+          type="submit"
+        >
+          {createShoppingList.isLoading && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          {createShoppingList.isLoading && "Creating..."}
+          {!createShoppingList.isLoading && "Create List"}
+        </Button>
+      </form>
+    </Form>
+  );
+}
+
+export function CreateShoppingListDialog() {
+  const [open, setOpen] = useState(false);
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button variant="outline">
           <Plus className="h-6 w-6" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="top" className="sm:max-w-[425px]">
+      <SheetContent side="top" className="w-full">
         <SheetHeader>
           <SheetTitle>Create List</SheetTitle>
         </SheetHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="listName">List Name</Label>
-            <Input
-              id="listName"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Christmas Shopping"
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="listDescription">Description</Label>
-            <Input
-              id="listDescription"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Christmas gifts for friends and family"
-            />
-          </div>
-        </div>
+        <CreateShoppingListForm setOpen={setOpen} />
         <SheetFooter>
           <div className="grid w-full grid-cols-1 gap-2">
-            <Button
-              onClick={(e) => {
-                createShoppingList.mutate({ name, description });
-              }}
-              disabled={createShoppingList.isLoading}
-              className="w-full"
-              type="submit"
-            >
-              {createShoppingList.isLoading && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              {createShoppingList.isLoading && "Creating..."}
-              {!createShoppingList.isLoading && "Creating List"}
-            </Button>
             <SheetClose>
-              <Button className="w-full" variant="outline">
+              <Button className="mt-4 w-full" variant="outline">
                 Cancel
               </Button>
             </SheetClose>

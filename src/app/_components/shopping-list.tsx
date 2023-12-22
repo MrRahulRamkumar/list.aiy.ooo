@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader } from "@/components/ui/card";
-import { ShareDialog } from "./share-dialog";
-import CreateShoppingListDialog from "./create-shopping-list-dialog";
+import { ShareDialog } from "@/app/_components/share-dialog";
+import { CreateShoppingListDialog } from "@/app/_components/create-shopping-list-dialog";
 import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,6 @@ import { type SelectShoppingList, type SelectUser } from "@/server/db/schema";
 
 export async function ShoppingList() {
   const shoppingLists = await api.shoppingList.getShoppingLists.query();
-  console.log(shoppingLists[0]?.collaborators);
 
   return (
     <>

@@ -25,7 +25,7 @@ export default function Page({ params }: { params: { slug: string } }) {
   }
 
   if (session.status === "unauthenticated") {
-    redirect("/signIn");
+    redirect(`/signIn?slug=${params.slug}`);
   }
 
   return (

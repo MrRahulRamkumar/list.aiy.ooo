@@ -5,13 +5,23 @@ import { Loader2, Mail } from "lucide-react";
 import { signIn, useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 export default function Landing() {
   const [loading, setLoading] = useState(false);
   const session = useSession();
+
+  const searchParams = useSearchParams();
+  const slug = searchParams.get("slug");
+
   if (session.status === "authenticated") {
-    redirect("/");
+    if (slug) {
+      redirect(`/list/${slug}`);
+    } else {
+      redirect("/");
+    }
   }
+
   return (
     <>
       <main className="container my-12 px-4 md:px-6">
@@ -31,7 +41,8 @@ export default function Landing() {
               disabled={loading}
               onClick={() => {
                 setLoading(true);
-                void signIn("google", { callbackUrl: "/" });
+                const callbackUrl = slug ? `/list/${slug}` : "/";
+                void signIn("google", { callbackUrl });
               }}
             >
               {!loading && <Mail className="mr-2 h-4 w-4" />}

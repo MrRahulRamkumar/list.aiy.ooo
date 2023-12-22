@@ -21,18 +21,20 @@ export async function ShoppingList() {
                 <h1 className="pr-1 text-3xl font-bold tracking-tight">
                   Your Lists
                 </h1>
-                <Link href={"/api/auth/signout"}>
-                  <Button variant="ghost">
-                    <LogOut className="h-6 w-6" />
-                  </Button>
-                </Link>
+                <div className="flex flex-col items-end justify-center">
+                  <Link href={"/api/auth/signout"}>
+                    <Button variant="ghost">
+                      <LogOut className="h-6 w-6" />
+                    </Button>
+                  </Link>
+                </div>
               </div>
-
               <p className="text-sm text-gray-500 dark:text-gray-400 sm:text-base">
-                Manage your shopping lists and collaborate with others.
+                Manage your shopping lists and collaborate with others
               </p>
             </div>
           </div>
+
           {shoppingLists.length === 0 && (
             <div className="flex items-center justify-center p-4">
               <p className="text-xl text-gray-500">

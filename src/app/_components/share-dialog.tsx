@@ -3,14 +3,14 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
-  DialogTitle,
-  DialogHeader,
-  DialogContent,
-  Dialog,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
+  SheetTitle,
+  SheetHeader,
+  SheetContent,
+  Sheet,
+  SheetTrigger,
+  SheetFooter,
+  SheetClose,
+} from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { type SelectUser } from "@/server/db/schema";
 import { Check, Copy, Send } from "lucide-react";
@@ -18,7 +18,7 @@ import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 
-interface ShareDialogProps {
+interface ShareSheetProps {
   slug: string;
   owner: SelectUser;
   collaborators: {
@@ -28,21 +28,21 @@ interface ShareDialogProps {
   }[];
 }
 
-export function ShareDialog({ slug, owner, collaborators }: ShareDialogProps) {
+export function ShareDialog({ slug, owner, collaborators }: ShareSheetProps) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
+    <Sheet>
+      <SheetTrigger asChild>
         <Button variant="ghost" size="icon">
           <Send />
         </Button>
-      </DialogTrigger>
-      <DialogContent className="space-y-4 p-4">
-        <DialogHeader>
-          <DialogTitle>Share this Shopping List</DialogTitle>
-        </DialogHeader>
+      </SheetTrigger>
+      <SheetContent side="top" className="w-full space-y-4 p-4">
+        <SheetHeader>
+          <SheetTitle>Share this Shopping List</SheetTitle>
+        </SheetHeader>
         <div className="flex items-center space-x-2">
           <Input
             className="w-full"
@@ -99,24 +99,24 @@ export function ShareDialog({ slug, owner, collaborators }: ShareDialogProps) {
           <div className="h-60 space-y-4 overflow-y-scroll rounded-md border border-gray-200 p-2">
             <ul className="list-none space-y-4">
               {collaborators.map((c) => {
-                return <ShareDialogCollaboratorListItem {...c.user} />;
+                return <ShareSheetCollaboratorListItem {...c.user} />;
               })}
             </ul>
           </div>
         )}
-        <DialogFooter className="sm:justify-start">
-          <DialogClose asChild>
+        <SheetFooter className="sm:justify-start">
+          <SheetClose asChild>
             <Button type="button" className="w-full">
               Done
             </Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </SheetClose>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }
 
-export function ShareDialogCollaboratorListItem({
+export function ShareSheetCollaboratorListItem({
   id,
   name,
   email,

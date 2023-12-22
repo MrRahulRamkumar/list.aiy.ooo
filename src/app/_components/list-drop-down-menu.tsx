@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2, MoreVertical, Pencil, Trash } from "lucide-react";
+import { Loader2, MoreVertical, Trash } from "lucide-react";
 import { api } from "@/trpc/react";
 import { useState } from "react";
 
@@ -39,18 +39,14 @@ export function ListDropdownMenu({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem>
-          <Pencil className="mr-2 h-4 w-4" />
-          <span>Edit</span>
-        </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => {
             setOpen(false);
             void deleteShoppingListItem.mutate(shoppingListItemId);
           }}
         >
-          <Trash className="mr-2 h-4 w-4" />
-          <span>Delete</span>
+          <Trash className="mr-2 h-4 w-4 text-red-500" />
+          <span className="text-red-500">Delete</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

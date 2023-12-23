@@ -22,7 +22,6 @@ import {
   Drawer,
   DrawerClose,
   DrawerContent,
-  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
@@ -113,7 +112,7 @@ export function ShareDialogContent({
 
   return (
     <div className={className}>
-      <div className="flex items-center">
+      <div className="flex items-center space-x-2">
         <Input
           className="w-full"
           id="share-link"
@@ -142,40 +141,47 @@ export function ShareDialogContent({
           <span className="sr-only">Copy link</span>
         </Button>
       </div>
-      <li className="flex items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100">
-        <div className="flex items-center space-x-2">
-          <Avatar>
-            {owner.image && <AvatarImage src={owner.image} />}
-            <AvatarFallback>
-              {owner.name?.charAt(0).toLocaleUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <p>{owner.name}</p>
-            <p className="text-ellipsis text-sm text-gray-500">{owner.email}</p>
+      <div className="py-4">
+        <p className="text-center text-xl font-bold">Owner</p>
+        <div className="flex items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100">
+          <div className="flex items-center space-x-2">
+            <Avatar>
+              {owner.image && <AvatarImage src={owner.image} />}
+              <AvatarFallback>
+                {owner.name?.charAt(0).toLocaleUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="max-w-200">
+              <p>{owner.name}</p>
+              <p className="text-ellipsis text-sm text-gray-500">
+                {owner.email}
+              </p>
+            </div>
+            {/* <span className="rounded bg-green-500 px-2 py-1 text-xs text-white">
+            Owner
+          </span> */}
           </div>
         </div>
-        <span className="rounded bg-green-500 px-2 py-1 text-xs text-white">
-          Owner
-        </span>
-      </li>
-      <p className="mt-4 text-center text-xl font-bold">Collaborators</p>
-      {collaborators.length === 0 && (
-        <p className="text-center text-gray-500">
-          No collaborators yet. Send the link to people you want to shop with!
-        </p>
-      )}
-      {collaborators.length > 0 && (
-        <div className="h-60 space-y-4 overflow-y-scroll rounded-md border border-gray-200 p-2">
-          <ul className="list-none space-y-4">
-            {collaborators.map((c) => {
-              return (
-                <ShareDialogCollaboratorListItem key={c.userId} {...c.user} />
-              );
-            })}
-          </ul>
-        </div>
-      )}
+      </div>
+      <div className="py-2">
+        <p className="text-center text-xl font-bold">Collaborators</p>
+        {collaborators.length === 0 && (
+          <p className="py-2 text-center text-sm text-gray-500">
+            No collaborators yet. Send the link to people you want to shop with!
+          </p>
+        )}
+        {collaborators.length > 0 && (
+          <div className="h-60 space-y-4 overflow-y-scroll rounded-md border border-gray-200 p-2">
+            <ul className="list-none space-y-4">
+              {collaborators.map((c) => {
+                return (
+                  <ShareDialogCollaboratorListItem key={c.userId} {...c.user} />
+                );
+              })}
+            </ul>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

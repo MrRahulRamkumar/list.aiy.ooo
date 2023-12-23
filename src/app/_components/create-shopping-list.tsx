@@ -206,29 +206,4 @@ export function CreateShoppingList() {
       </DrawerContent>
     </Drawer>
   );
-
-  return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button variant="outline">
-          <Plus className="h-6 w-6" />
-        </Button>
-      </SheetTrigger>
-      <SheetContent side="top" className="w-full">
-        <SheetHeader>
-          <SheetTitle>Create List</SheetTitle>
-        </SheetHeader>
-        <CreateShoppingListForm setOpen={setOpen} />
-        <SheetFooter>
-          <div className="grid w-full grid-cols-1">
-            <SheetClose>
-              <Button className="mt-4 w-full" variant="outline">
-                Cancel
-              </Button>
-            </SheetClose>
-          </div>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
-  );
 }

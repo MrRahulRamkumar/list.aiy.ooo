@@ -8,6 +8,8 @@ import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "@/trpc/react";
 import { useState } from "react";
+import { useMediaQuery } from "usehooks-ts";
+import { cn } from "@/lib/utils";
 import {
   SelectValue,
   SelectTrigger,
@@ -16,16 +18,6 @@ import {
   Select,
 } from "@/components/ui/select";
 import {
-  SheetTrigger,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  Sheet,
-  SheetFooter,
-  SheetClose,
-} from "@/components/ui/sheet";
-import {
   Form,
   FormControl,
   FormField,
@@ -33,6 +25,28 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+} from "@/components/ui/dialog";
+import {
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from "@radix-ui/react-dialog";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 
 const formSchema = z.object({
   name: z
@@ -55,6 +69,7 @@ const formSchema = z.object({
 });
 
 interface AddToShoppingListFormProps {
+  className?: string;
   shoppingListSlug: string;
   shoppingListId: number;
   setOpen: (open: boolean) => void;
@@ -63,6 +78,7 @@ function AddToShoppingListForm({
   shoppingListSlug,
   shoppingListId,
   setOpen,
+  className,
 }: AddToShoppingListFormProps) {
   const utils = api.useUtils();
   const addToShoppingList = api.shoppingList.addShoppingListItem.useMutation({
@@ -88,7 +104,10 @@ function AddToShoppingListForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className={cn("space-y-4", className)}
+      >
         <FormField
           control={form.control}
           name="name"
@@ -172,36 +191,70 @@ export function AddToShoppingListDialog({
 }: AddToShoppingListDialogProps) {
   const [open, setOpen] = useState(false);
 
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+
+  if (isDesktop) {
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button variant="outline">
+            <Plus className="h-6 w-6" />
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add item</DialogTitle>
+            <DialogDescription>
+              Fill in the details of the item you want to add to your shopping
+              list.
+            </DialogDescription>
+          </DialogHeader>
+          <AddToShoppingListForm
+            setOpen={setOpen}
+            shoppingListId={shoppingListId}
+            shoppingListSlug={shoppingListSlug}
+          />
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button className="w-full" variant="outline">
+                Cancel
+              </Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerTrigger asChild>
         <Button variant="outline">
           <Plus className="h-6 w-6" />
         </Button>
-      </SheetTrigger>
-      <SheetContent side="top" className="w-full">
-        <SheetHeader>
-          <SheetTitle>Add Item</SheetTitle>
-          <SheetDescription>
+      </DrawerTrigger>
+      <DrawerContent>
+        <DrawerHeader className="text-left">
+          <DrawerTitle>Add item</DrawerTitle>
+          <DrawerDescription>
             Fill in the details of the item you want to add to your shopping
             list.
-          </SheetDescription>
-        </SheetHeader>
+          </DrawerDescription>
+        </DrawerHeader>
         <AddToShoppingListForm
+          className="px-4"
           setOpen={setOpen}
           shoppingListId={shoppingListId}
           shoppingListSlug={shoppingListSlug}
         />
-        <SheetFooter>
-          <div className="grid w-full grid-cols-1">
-            <SheetClose>
-              <Button className="mt-4 w-full" variant="outline">
-                Cancel
-              </Button>
-            </SheetClose>
-          </div>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+        <DrawerFooter>
+          <DrawerClose asChild>
+            <Button className="w-full" variant="outline">
+              Cancel
+            </Button>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }

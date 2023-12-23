@@ -154,7 +154,7 @@ function CreateShoppingListForm({
   );
 }
 
-export function CreateShoppingListDialog() {
+export function CreateShoppingList() {
   const [open, setOpen] = useState(false);
 
   const isDesktop = useMediaQuery("(min-width: 768px)");

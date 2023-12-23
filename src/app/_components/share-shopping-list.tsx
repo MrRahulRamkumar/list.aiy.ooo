@@ -1,7 +1,5 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
   DialogTitle,
   DialogHeader,
@@ -11,13 +9,6 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { type SelectUser } from "@/server/db/schema";
-import { Check, Copy, Send } from "lucide-react";
-import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
-import { ToastAction } from "@/components/ui/toast";
-import { useMediaQuery } from "usehooks-ts";
 import {
   Drawer,
   DrawerClose,
@@ -27,9 +18,17 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { type SelectUser } from "@/server/db/schema";
+import { Check, Copy, Send } from "lucide-react";
+import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
+import { ToastAction } from "@/components/ui/toast";
+import { useMediaQuery } from "usehooks-ts";
 
-interface ShareDialogProps {
+interface ShareShoppingListProps {
   className?: string;
   slug: string;
   owner: SelectUser;
@@ -40,7 +39,11 @@ interface ShareDialogProps {
   }[];
 }
 
-export function ShareDialog({ slug, owner, collaborators }: ShareDialogProps) {
+export function ShareShoppingList({
+  slug,
+  owner,
+  collaborators,
+}: ShareShoppingListProps) {
   const [open, setOpen] = useState(false);
 
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -106,7 +109,7 @@ export function ShareDialogContent({
   slug,
   owner,
   collaborators,
-}: ShareDialogProps) {
+}: ShareShoppingListProps) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 

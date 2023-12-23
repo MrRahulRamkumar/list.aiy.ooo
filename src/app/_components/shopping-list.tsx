@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader } from "@/components/ui/card";
-import { ShareDialog } from "@/app/_components/share-dialog";
-import { CreateShoppingListDialog } from "@/app/_components/create-shopping-list-dialog";
+import { ShareShoppingList } from "@/app/_components/share-shopping-list";
+import { CreateShoppingList } from "@/app/_components/create-shopping-list";
 import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -58,7 +58,7 @@ export async function ShoppingList() {
           )}
         </div>
         <div className="flex items-center justify-center p-4">
-          <CreateShoppingListDialog />
+          <CreateShoppingList />
         </div>
       </main>
     </>
@@ -112,7 +112,7 @@ export function ShoppingListItem({
           </div>
 
           <div>
-            <ShareDialog
+            <ShareShoppingList
               slug={shoppingList.slug}
               owner={owner}
               collaborators={collaborators}

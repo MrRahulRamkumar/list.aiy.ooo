@@ -128,7 +128,7 @@ function AddToShoppingListForm({
             <FormItem>
               <FormLabel>Quantity</FormLabel>
               <FormControl>
-                <Input placeholder="-" {...field} />
+                <Input type="number" placeholder="-" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

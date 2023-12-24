@@ -15,7 +15,7 @@ export async function ShoppingList() {
     <>
       <main className="w-full py-4 sm:py-6 md:py-12">
         <div className="container mx-auto grid max-w-sm gap-4 px-2 sm:max-w-md sm:gap-6 sm:px-4 md:max-w-xl md:gap-8 md:px-6 lg:max-w-none">
-          <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-4 md:gap-8">
+          <div className="flex items-center justify-center gap-2 sm:gap-4 md:gap-8">
             <div className="grid gap-1">
               <div className="flex-cols flex justify-between">
                 <h1 className="pr-1 text-3xl font-bold tracking-tight">
@@ -30,9 +30,6 @@ export async function ShoppingList() {
                   </Link>
                 </div>
               </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400 sm:text-base">
-                Manage your shopping lists and collaborate with others
-              </p>
             </div>
           </div>
 

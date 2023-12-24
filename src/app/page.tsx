@@ -3,6 +3,8 @@ import { ShoppingList } from "./_components/shopping-list";
 import { redirect } from "next/navigation";
 import { CreateShoppingList } from "./_components/create-shopping-list";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Suspense } from "react";
+import { Loading } from "./_components/loading";
 
 export default async function Home() {
   const session = await getServerAuthSession();
@@ -16,17 +18,21 @@ export default async function Home() {
             <TabsTrigger value="collaborator">My collabs</TabsTrigger>
           </TabsList>
           <TabsContent value="owner">
-            <div className="container mx-auto grid max-w-sm gap-4 px-2 sm:max-w-md sm:gap-6 sm:px-4 md:max-w-xl md:gap-8 md:px-6 lg:max-w-none">
-              <ShoppingList type="owner" />
-            </div>
-            <div className="flex items-center justify-center p-4">
-              <CreateShoppingList />
-            </div>
+            <Suspense fallback={<Loading />}>
+              <div className="container mx-auto grid max-w-sm gap-4 px-2 sm:max-w-md sm:gap-6 sm:px-4 md:max-w-xl md:gap-8 md:px-6 lg:max-w-none">
+                <ShoppingList type="owner" />
+              </div>
+              <div className="flex items-center justify-center p-4">
+                <CreateShoppingList />
+              </div>
+            </Suspense>
           </TabsContent>
           <TabsContent value="collaborator">
-            <div className="container mx-auto grid max-w-sm gap-4 px-2 sm:max-w-md sm:gap-6 sm:px-4 md:max-w-xl md:gap-8 md:px-6 lg:max-w-none">
-              <ShoppingList type="collaborator" />
-            </div>
+            <Suspense fallback={<Loading />}>
+              <div className="container mx-auto grid max-w-sm gap-4 px-2 sm:max-w-md sm:gap-6 sm:px-4 md:max-w-xl md:gap-8 md:px-6 lg:max-w-none">
+                <ShoppingList type="collaborator" />
+              </div>
+            </Suspense>
           </TabsContent>
         </Tabs>
       </main>

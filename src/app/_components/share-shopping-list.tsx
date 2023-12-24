@@ -31,17 +31,13 @@ import { useMediaQuery } from "usehooks-ts";
 interface ShareShoppingListProps {
   className?: string;
   slug: string;
-  owner: SelectUser;
-  collaborators: {
-    userId: string;
-    shoppingListId: number;
-    user: SelectUser;
-  }[];
+  createdBy: SelectUser;
+  collaborators: SelectUser[];
 }
 
 export function ShareShoppingList({
   slug,
-  owner,
+  createdBy,
   collaborators,
 }: ShareShoppingListProps) {
   const [open, setOpen] = useState(false);
@@ -62,7 +58,7 @@ export function ShareShoppingList({
           </DialogHeader>
           <ShareDialogContent
             slug={slug}
-            owner={owner}
+            createdBy={createdBy}
             collaborators={collaborators}
           />
           <DialogFooter className="sm:justify-start">
@@ -91,7 +87,7 @@ export function ShareShoppingList({
         <ShareDialogContent
           className="px-4"
           slug={slug}
-          owner={owner}
+          createdBy={createdBy}
           collaborators={collaborators}
         />
         <DrawerFooter>
@@ -107,7 +103,7 @@ export function ShareShoppingList({
 export function ShareDialogContent({
   className,
   slug,
-  owner,
+  createdBy,
   collaborators,
 }: ShareShoppingListProps) {
   const { toast } = useToast();
@@ -149,60 +145,68 @@ export function ShareDialogContent({
         <div className="flex items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100">
           <div className="flex items-center space-x-2">
             <Avatar>
-              {owner.image && <AvatarImage src={owner.image} />}
+              {createdBy.image && <AvatarImage src={createdBy.image} />}
               <AvatarFallback>
-                {owner.name?.charAt(0).toLocaleUpperCase()}
+                {createdBy.name?.charAt(0).toLocaleUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div className="max-w-200">
-              <p>{owner.name}</p>
+              <p>{createdBy.name}</p>
               <p className="text-ellipsis text-sm text-gray-500">
-                {owner.email}
+                {createdBy.email}
               </p>
             </div>
-            {/* <span className="rounded bg-green-500 px-2 py-1 text-xs text-white">
-            Owner
-          </span> */}
           </div>
         </div>
       </div>
       <div className="py-2">
         <p className="text-center text-xl font-bold">Collaborators</p>
-        {collaborators.length === 0 && (
-          <p className="py-2 text-center text-sm text-gray-500">
-            No collaborators yet. Send the link to people you want to shop with!
-          </p>
-        )}
-        {collaborators.length > 0 && (
-          <div className="h-60 space-y-4 overflow-y-scroll rounded-md border border-gray-200 p-2">
-            <ul className="list-none space-y-4">
-              {collaborators.map((c) => {
-                return (
-                  <ShareDialogCollaboratorListItem key={c.userId} {...c.user} />
-                );
-              })}
-            </ul>
-          </div>
-        )}
+        <div className="py-2">
+          {collaborators.length === 0 && (
+            <p className="py-2 text-center text-sm text-gray-500">
+              No collaborators yet. Send the link to people you want to shop
+              with!
+            </p>
+          )}
+          {collaborators.length > 0 && (
+            <div className="h-60 space-y-4 overflow-y-scroll rounded-md border border-gray-200 p-2">
+              <ul className="list-none space-y-4">
+                {collaborators.map((c) => {
+                  return (
+                    <>
+                      <ShareDialogCollaboratorListItem
+                        key={c.id}
+                        collaborator={c}
+                      />
+                    </>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
+interface ShareDialogCollaboratorListItemProps {
+  collaborator: SelectUser;
+}
 export function ShareDialogCollaboratorListItem({
-  name,
-  email,
-  image,
-}: SelectUser) {
+  collaborator,
+}: ShareDialogCollaboratorListItemProps) {
   return (
     <li className="flex items-center space-x-2 rounded-md p-2 hover:bg-gray-100">
       <Avatar>
-        {image && <AvatarImage src={image} />}
-        <AvatarFallback>{name?.charAt(0).toLocaleUpperCase()}</AvatarFallback>
+        {collaborator.image && <AvatarImage src={collaborator.image} />}
+        <AvatarFallback>
+          {collaborator.name?.charAt(0).toLocaleUpperCase()}
+        </AvatarFallback>
       </Avatar>
       <div>
-        <p>Jane Doe</p>
-        <p className="text-sm text-gray-500">{email}</p>
+        <p>{collaborator.name}</p>
+        <p className="text-sm text-gray-500">{collaborator.email}</p>
       </div>
     </li>
   );

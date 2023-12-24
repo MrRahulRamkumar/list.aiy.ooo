@@ -6,10 +6,11 @@ import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/server";
-import { type SelectShoppingList, type SelectUser } from "@/server/db/schema";
+import { type SelectShoppingListWithRelations } from "@/server/db/schema";
 
 export async function ShoppingList() {
-  const shoppingLists = await api.shoppingList.getShoppingLists.query();
+  const shoppingLists =
+    await api.shoppingList.getCollaboratingShoppingLists.query();
 
   return (
     <>
@@ -44,12 +45,7 @@ export async function ShoppingList() {
             <div className="grid gap-4 sm:gap-6 md:gap-8">
               {shoppingLists.map((sl) => {
                 return (
-                  <ShoppingListItem
-                    key={sl.id.toString()}
-                    shoppingList={sl}
-                    owner={sl.createdBy}
-                    collaborators={sl.collaborators}
-                  />
+                  <ShoppingListItem key={sl.id.toString()} shoppingList={sl} />
                 );
               })}
             </div>
@@ -64,20 +60,10 @@ export async function ShoppingList() {
 }
 
 interface ShoppingListItemProps {
-  shoppingList: SelectShoppingList;
-  owner: SelectUser;
-  collaborators: {
-    userId: string;
-    shoppingListId: number;
-    user: SelectUser;
-  }[];
+  shoppingList: SelectShoppingListWithRelations;
 }
 
-export function ShoppingListItem({
-  shoppingList,
-  owner,
-  collaborators,
-}: ShoppingListItemProps) {
+export function ShoppingListItem({ shoppingList }: ShoppingListItemProps) {
   return (
     <Card>
       <CardHeader>
@@ -97,12 +83,12 @@ export function ShoppingListItem({
                 </div>
               </Link>
               <div className="mt-1 flex gap-1 sm:mt-2 sm:gap-2">
-                {collaborators.slice(0, 3).map((c, index) => (
-                  <Badge key={index}>{c.user.name}</Badge>
+                {shoppingList.collaborators.slice(0, 3).map((c, index) => (
+                  <Badge key={index}>{c.name?.split(" ")[0]}</Badge>
                 ))}
-                {collaborators.length > 3 && (
+                {shoppingList.collaborators.length > 3 && (
                   <Badge variant={"outline"}>
-                    +{collaborators.length - 3} more
+                    +{shoppingList.collaborators.length - 3} more
                   </Badge>
                 )}
               </div>
@@ -112,8 +98,8 @@ export function ShoppingListItem({
           <div>
             <ShareShoppingList
               slug={shoppingList.slug}
-              owner={owner}
-              collaborators={collaborators}
+              createdBy={shoppingList.createdBy}
+              collaborators={shoppingList.collaborators}
             />
           </div>
         </div>

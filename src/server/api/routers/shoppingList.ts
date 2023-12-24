@@ -2,31 +2,141 @@ import { z } from "zod";
 import { createId } from "@paralleldrive/cuid2";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
+  type SelectShoppingListWithRelations,
+  shoppingListCollaborators,
   shoppingListItems,
   shoppingLists,
   unitValues,
+  users,
 } from "@/server/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/mysql-core";
 
 export const shoppingListRouter = createTRPCRouter({
-  getShoppingLists: protectedProcedure.query(({ ctx }) => {
-    return ctx.db.query.shoppingLists.findMany({
-      with: {
-        items: true,
-        createdBy: true,
-        collaborators: {
-          with: {
-            user: true,
-          },
-        },
+  getYourShoppingLists: protectedProcedure.query(async ({ ctx }) => {
+    const createdBy = alias(users, "createdBy");
+    const collaborator = alias(users, "collaborator");
+
+    const rows = await ctx.db
+      .select()
+      .from(shoppingLists)
+      .innerJoin(createdBy, eq(createdBy.id, shoppingLists.createdById))
+      .leftJoin(
+        shoppingListItems,
+        eq(shoppingLists.id, shoppingListItems.shoppingListId),
+      )
+      .leftJoin(
+        shoppingListCollaborators,
+        eq(shoppingLists.id, shoppingListCollaborators.shoppingListId),
+      )
+      .leftJoin(
+        collaborator,
+        eq(shoppingListCollaborators.userId, collaborator.id),
+      )
+      .where(eq(shoppingLists.createdById, ctx.session.user.id));
+
+    const result = rows.reduce<Record<number, SelectShoppingListWithRelations>>(
+      (acc, row) => {
+        const shoppingList = row.shoppingList;
+        const item = row.shoppingListItem;
+        const collaborator = row.collaborator;
+        const createdBy = row.createdBy;
+
+        if (!acc[shoppingList.id]) {
+          acc[shoppingList.id] = {
+            ...shoppingList,
+            createdBy: createdBy,
+            items: [],
+            collaborators: [],
+          };
+        }
+
+        if (item) {
+          acc[shoppingList.id]?.items.push(item);
+        }
+
+        if (collaborator) {
+          const collaborators = acc[shoppingList.id]?.collaborators ?? [];
+          if (!collaborators.some((c) => c.id === collaborator.id)) {
+            collaborators.push(collaborator);
+          }
+        }
+
+        return acc;
       },
-      where: eq(shoppingLists.createdById, ctx.session.user.id),
-    });
+      {},
+    );
+
+    return Object.values(result);
+  }),
+  getCollaboratingShoppingLists: protectedProcedure.query(async ({ ctx }) => {
+    const createdBy = alias(users, "createdBy");
+    const collaboratorTarget = alias(
+      shoppingListCollaborators,
+      "collaboratorTarget",
+    );
+    const collaborator = alias(users, "collaborator");
+
+    const rows = await ctx.db
+      .select()
+      .from(shoppingLists)
+      .innerJoin(createdBy, eq(createdBy.id, shoppingLists.createdById))
+      .leftJoin(
+        shoppingListItems,
+        eq(shoppingLists.id, shoppingListItems.shoppingListId),
+      )
+      .leftJoin(
+        collaboratorTarget,
+        eq(shoppingLists.id, collaboratorTarget.shoppingListId),
+      )
+      .leftJoin(
+        shoppingListCollaborators,
+        eq(shoppingLists.id, shoppingListCollaborators.shoppingListId),
+      )
+      .leftJoin(
+        collaborator,
+        eq(shoppingListCollaborators.userId, collaborator.id),
+      )
+      .where(eq(collaboratorTarget.userId, ctx.session.user.id));
+
+    const result = rows.reduce<Record<number, SelectShoppingListWithRelations>>(
+      (acc, row) => {
+        const shoppingList = row.shoppingList;
+        const item = row.shoppingListItem;
+        const collaborator = row.collaborator;
+        const createdBy = row.createdBy;
+
+        if (!acc[shoppingList.id]) {
+          acc[shoppingList.id] = {
+            ...shoppingList,
+            createdBy: createdBy,
+            items: [],
+            collaborators: [],
+          };
+        }
+
+        if (item) {
+          acc[shoppingList.id]?.items.push(item);
+        }
+
+        if (collaborator) {
+          const collaborators = acc[shoppingList.id]?.collaborators ?? [];
+          if (!collaborators.some((c) => c.id === collaborator.id)) {
+            collaborators.push(collaborator);
+          }
+        }
+
+        return acc;
+      },
+      {},
+    );
+
+    return Object.values(result);
   }),
   getShoppingList: protectedProcedure
     .input(z.string())
-    .query(({ ctx, input }) => {
-      return ctx.db.query.shoppingLists.findFirst({
+    .query(async ({ ctx, input }) => {
+      const shoppingList = await ctx.db.query.shoppingLists.findFirst({
         with: {
           items: {
             with: {
@@ -41,6 +151,27 @@ export const shoppingListRouter = createTRPCRouter({
         },
         where: eq(shoppingLists.slug, input),
       });
+
+      if (!shoppingList) return null;
+
+      if (shoppingList.createdById !== ctx.session.user.id) {
+        const collaborator =
+          await ctx.db.query.shoppingListCollaborators.findFirst({
+            where: and(
+              eq(shoppingListCollaborators.userId, ctx.session.user.id),
+              eq(shoppingListCollaborators.shoppingListId, shoppingList.id),
+            ),
+          });
+
+        if (!collaborator) {
+          await ctx.db.insert(shoppingListCollaborators).values({
+            shoppingListId: shoppingList.id,
+            userId: ctx.session.user.id,
+          });
+        }
+      }
+
+      return shoppingList;
     }),
   createShoppingList: protectedProcedure
     .input(

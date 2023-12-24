@@ -217,3 +217,9 @@ export type SelectSession = InferSelectModel<typeof sessions>;
 export type SelectVerificationToken = InferSelectModel<
   typeof verificationTokens
 >;
+
+export type SelectShoppingListWithRelations = SelectShoppingList & {
+  createdBy: SelectUser;
+  items: SelectShoppingListItem[];
+  collaborators: SelectUser[];
+};

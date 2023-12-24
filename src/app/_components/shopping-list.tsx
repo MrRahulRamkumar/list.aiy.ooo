@@ -17,11 +17,12 @@ export async function ShoppingList() {
         <div className="container mx-auto grid max-w-sm gap-4 px-2 sm:max-w-md sm:gap-6 sm:px-4 md:max-w-xl md:gap-8 md:px-6 lg:max-w-none">
           <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-4 md:gap-8">
             <div className="grid gap-1">
-              <div className="flex-cols flex">
+              <div className="flex-cols flex justify-between">
                 <h1 className="pr-1 text-3xl font-bold tracking-tight">
                   Your Lists
                 </h1>
-                <div className="flex flex-col items-end justify-center">
+                <div className="flex flex-row items-end justify-between">
+                  <CreateShoppingList />
                   <Link href={"/api/auth/signout"}>
                     <Button variant="ghost">
                       <LogOut className="h-6 w-6" />

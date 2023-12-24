@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { List } from "@/app/_components/list";
 import { useSession } from "next-auth/react";
 import { Loading } from "@/app/_components/loading";
+import { Separator } from "@/components/ui/separator";
 
 export default function Page({ params }: { params: { slug: string } }) {
   const session = useSession();
@@ -15,10 +16,11 @@ export default function Page({ params }: { params: { slug: string } }) {
     return (
       <div>
         <Link href="/">
-          <Button className="mt-4" variant="ghost">
+          <Button className="mb-2 mt-4" variant="ghost">
             <ChevronLeft className="h-8 w-8" />
           </Button>
         </Link>
+        <Separator />
         <Loading />
       </div>
     );
@@ -31,10 +33,11 @@ export default function Page({ params }: { params: { slug: string } }) {
   return (
     <div>
       <Link href="/">
-        <Button className="mt-4" variant="ghost">
+        <Button className="mb-2 mt-4" variant="ghost">
           <ChevronLeft className="h-8 w-8" />
         </Button>
       </Link>
+      <Separator />
 
       <List slug={params.slug} />
     </div>

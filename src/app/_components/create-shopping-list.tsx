@@ -163,7 +163,7 @@ export function CreateShoppingList() {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline">
+          <Button variant="ghost">
             <Plus className="h-6 w-6" />
           </Button>
         </DialogTrigger>
@@ -187,7 +187,7 @@ export function CreateShoppingList() {
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button variant="outline">
+        <Button variant="ghost">
           <Plus className="h-6 w-6" />
         </Button>
       </DrawerTrigger>

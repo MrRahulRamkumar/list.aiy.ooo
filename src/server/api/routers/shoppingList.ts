@@ -22,10 +22,6 @@ export const shoppingListRouter = createTRPCRouter({
       .from(shoppingLists)
       .innerJoin(createdBy, eq(createdBy.id, shoppingLists.createdById))
       .leftJoin(
-        shoppingListItems,
-        eq(shoppingLists.id, shoppingListItems.shoppingListId),
-      )
-      .leftJoin(
         shoppingListCollaborators,
         eq(shoppingLists.id, shoppingListCollaborators.shoppingListId),
       )
@@ -38,7 +34,6 @@ export const shoppingListRouter = createTRPCRouter({
     const result = rows.reduce<Record<number, SelectShoppingListWithRelations>>(
       (acc, row) => {
         const shoppingList = row.shoppingList;
-        const item = row.shoppingListItem;
         const collaborator = row.collaborator;
         const createdBy = row.createdBy;
 
@@ -46,13 +41,8 @@ export const shoppingListRouter = createTRPCRouter({
           acc[shoppingList.id] = {
             ...shoppingList,
             createdBy: createdBy,
-            items: [],
             collaborators: [],
           };
-        }
-
-        if (item) {
-          acc[shoppingList.id]?.items.push(item);
         }
 
         if (collaborator) {
@@ -81,11 +71,7 @@ export const shoppingListRouter = createTRPCRouter({
       .select()
       .from(shoppingLists)
       .innerJoin(createdBy, eq(createdBy.id, shoppingLists.createdById))
-      .leftJoin(
-        shoppingListItems,
-        eq(shoppingLists.id, shoppingListItems.shoppingListId),
-      )
-      .leftJoin(
+      .innerJoin(
         collaboratorTarget,
         eq(shoppingLists.id, collaboratorTarget.shoppingListId),
       )
@@ -102,7 +88,6 @@ export const shoppingListRouter = createTRPCRouter({
     const result = rows.reduce<Record<number, SelectShoppingListWithRelations>>(
       (acc, row) => {
         const shoppingList = row.shoppingList;
-        const item = row.shoppingListItem;
         const collaborator = row.collaborator;
         const createdBy = row.createdBy;
 
@@ -110,13 +95,8 @@ export const shoppingListRouter = createTRPCRouter({
           acc[shoppingList.id] = {
             ...shoppingList,
             createdBy: createdBy,
-            items: [],
             collaborators: [],
           };
-        }
-
-        if (item) {
-          acc[shoppingList.id]?.items.push(item);
         }
 
         if (collaborator) {

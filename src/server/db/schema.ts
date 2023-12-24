@@ -220,6 +220,5 @@ export type SelectVerificationToken = InferSelectModel<
 
 export type SelectShoppingListWithRelations = SelectShoppingList & {
   createdBy: SelectUser;
-  items: SelectShoppingListItem[];
   collaborators: SelectUser[];
 };

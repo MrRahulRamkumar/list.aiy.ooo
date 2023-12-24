@@ -8,53 +8,51 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/server";
 import { type SelectShoppingListWithRelations } from "@/server/db/schema";
 
-export async function ShoppingList() {
-  const shoppingLists =
-    await api.shoppingList.getCollaboratingShoppingLists.query();
+interface ShoppingListProps {
+  type: "owner" | "collaborator";
+}
+export async function ShoppingList({ type }: ShoppingListProps) {
+  let shoppingLists;
+  if (type === "owner") {
+    shoppingLists = await api.shoppingList.getYourShoppingLists.query();
+  } else {
+    shoppingLists =
+      await api.shoppingList.getCollaboratingShoppingLists.query();
+  }
 
   return (
     <>
-      <main className="w-full py-4 sm:py-6 md:py-12">
-        <div className="container mx-auto grid max-w-sm gap-4 px-2 sm:max-w-md sm:gap-6 sm:px-4 md:max-w-xl md:gap-8 md:px-6 lg:max-w-none">
-          <div className="flex items-center justify-center gap-2 sm:gap-4 md:gap-8">
-            <div className="grid gap-1">
-              <div className="flex-cols flex justify-between">
-                <h1 className="pr-1 text-3xl font-bold tracking-tight">
-                  Your Lists
-                </h1>
-                <div className="flex flex-row items-end justify-between">
-                  <CreateShoppingList />
-                  <Link href={"/api/auth/signout"}>
-                    <Button variant="ghost">
-                      <LogOut className="h-6 w-6" />
-                    </Button>
-                  </Link>
-                </div>
+      <div>
+        <div className="flex items-center justify-center gap-2 sm:gap-4 md:gap-8">
+          <div className="grid gap-1">
+            <div className="flex-cols flex justify-between pb-8">
+              <div className="flex flex-row items-end justify-between">
+                {type === "owner" && <CreateShoppingList />}
+                <Link href={"/api/auth/signout"}>
+                  <Button variant="ghost">
+                    <LogOut className="h-6 w-6" />
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
+        </div>
 
-          {shoppingLists.length === 0 && (
-            <div className="flex items-center justify-center p-4">
-              <p className="text-xl text-gray-500">
-                No shopping lists, create one by clicking the button below
-              </p>
-            </div>
-          )}
-          {shoppingLists.length > 0 && (
-            <div className="grid gap-4 sm:gap-6 md:gap-8">
-              {shoppingLists.map((sl) => {
-                return (
-                  <ShoppingListItem key={sl.id.toString()} shoppingList={sl} />
-                );
-              })}
-            </div>
-          )}
-        </div>
-        <div className="flex items-center justify-center p-4">
-          <CreateShoppingList />
-        </div>
-      </main>
+        {shoppingLists.length === 0 && (
+          <div className="flex items-center justify-center p-4">
+            <p className="text-md text-gray-500">No shopping lists</p>
+          </div>
+        )}
+        {shoppingLists.length > 0 && (
+          <div className="grid gap-4 sm:gap-6 md:gap-8">
+            {shoppingLists.map((sl) => {
+              return (
+                <ShoppingListItem key={sl.id.toString()} shoppingList={sl} />
+              );
+            })}
+          </div>
+        )}
+      </div>
     </>
   );
 }

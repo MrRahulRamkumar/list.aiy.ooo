@@ -93,10 +93,7 @@ export function ListItem({
         </div>
       </div>
       <div className="flex flex-col items-end justify-center">
-        <ListDropdownMenu
-          shoppingListSlug={slug}
-          shoppingListItemId={item.id}
-        />
+        <ListDropdownMenu shoppingListItemId={item.id} />
       </div>
     </li>
   );

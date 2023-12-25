@@ -28,10 +28,6 @@ export default function Page({ params }: { params: { slug: string } }) {
   const socket = useSocket();
 
   useEffect(() => {
-    // if (!socket) {
-    //   console.error("socket not initialized");
-    //   return;
-    // }
     socket?.on("connect", () => {
       console.log("connected to socket", socket?.id);
     });
@@ -107,23 +103,26 @@ export default function Page({ params }: { params: { slug: string } }) {
       },
     );
 
-    socket?.on(DELETE_ITEM_CHANEL, (payload: { itemId: number }) => {
-      console.log("delete item", payload);
-      utils.shoppingList.getShoppingList.setData(slug, (prevShoppingList) => {
-        if (!prevShoppingList) {
-          return prevShoppingList;
-        }
+    socket?.on(
+      DELETE_ITEM_CHANEL,
+      (payload: { shoppingListItemId: number }) => {
+        console.log("delete item", payload);
+        utils.shoppingList.getShoppingList.setData(slug, (prevShoppingList) => {
+          if (!prevShoppingList) {
+            return prevShoppingList;
+          }
 
-        const items = prevShoppingList.items.filter((item) => {
-          return item.id !== payload.itemId;
+          const items = prevShoppingList.items.filter((item) => {
+            return item.id !== payload.shoppingListItemId;
+          });
+
+          return {
+            ...prevShoppingList,
+            items: items,
+          };
         });
-
-        return {
-          ...prevShoppingList,
-          items: items,
-        };
-      });
-    });
+      },
+    );
   }, [socket]);
 
   if (session.status === "loading") {

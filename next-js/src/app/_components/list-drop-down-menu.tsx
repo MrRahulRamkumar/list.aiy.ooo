@@ -14,11 +14,9 @@ import { ListPageContext } from "@/lib/list-page-context";
 import { DELETE_ITEM_CHANEL } from "@/lib/constants";
 
 interface ListDropdownMenuProps {
-  shoppingListSlug: string;
   shoppingListItemId: number;
 }
 export function ListDropdownMenu({
-  shoppingListSlug,
   shoppingListItemId,
 }: ListDropdownMenuProps) {
   const context = useContext(ListPageContext);

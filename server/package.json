@@ -3,7 +3,7 @@
   "module": "src/index.ts",
   "scripts": {
     "dev": "bun run src/index.ts",
-    "build": "tsc",
+    "build": "npm install && tsc",
     "start": "node build/index.js"
   },
   "devDependencies": {

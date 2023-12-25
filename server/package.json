@@ -1,10 +1,10 @@
 {
   "name": "shopping-list-server",
   "module": "src/index.ts",
-  "type": "module",
   "scripts": {
     "dev": "bun run src/index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "start": "node build/index.js"
   },
   "devDependencies": {
     "@types/node": "^20.10.5",

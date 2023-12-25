@@ -14,21 +14,21 @@ import { ListPageContext } from "@/lib/list-page-context";
 import { DELETE_ITEM_CHANEL } from "@/lib/constants";
 
 interface ListDropdownMenuProps {
+  shoppingListSlug: string;
   shoppingListItemId: number;
 }
 export function ListDropdownMenu({
+  shoppingListSlug,
   shoppingListItemId,
 }: ListDropdownMenuProps) {
   const context = useContext(ListPageContext);
-  if (!context) {
-    throw new Error("ListPageContext not initialized");
-  }
 
   const [open, setOpen] = useState(false);
   const deleteShoppingListItem =
     api.shoppingList.deleteShoppingListItem.useMutation({
       onSuccess: () => {
-        context.socket?.emit(DELETE_ITEM_CHANEL, {
+        context?.socket?.emit(DELETE_ITEM_CHANEL, {
+          shoppingListSlug,
           shoppingListItemId,
         });
       },

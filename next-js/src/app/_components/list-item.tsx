@@ -33,7 +33,10 @@ export function ListItem({
     api.shoppingList.completeShoppingListItem.useMutation({
       onSuccess: (item) => {
         console.log(context?.socket?.id);
-        context?.socket?.emit(COMPLETE_ITEM_CHANNEL, { item });
+        context?.socket?.emit(COMPLETE_ITEM_CHANNEL, {
+          shoppingListItem: item,
+          shoppingListSlug: slug,
+        });
       },
     });
 
@@ -93,7 +96,10 @@ export function ListItem({
         </div>
       </div>
       <div className="flex flex-col items-end justify-center">
-        <ListDropdownMenu shoppingListItemId={item.id} />
+        <ListDropdownMenu
+          shoppingListSlug={slug}
+          shoppingListItemId={item.id}
+        />
       </div>
     </li>
   );

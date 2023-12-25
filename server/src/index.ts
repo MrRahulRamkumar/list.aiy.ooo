@@ -8,6 +8,7 @@ import {
   NEW_ITEM_CHANNEL,
   CHANNELS,
   Channel,
+  JOIN_ROOM_CHANNEL,
 } from "./constants";
 import { Server } from "socket.io";
 import { randomUUID } from "crypto";
@@ -16,11 +17,19 @@ import { ShoppingListItem } from "./types";
 declare module "fastify" {
   interface FastifyInstance {
     io: Server<{
-      [NEW_ITEM_CHANNEL]: (shoppingListItem: ShoppingListItem) => Promise<void>;
-      [DELETE_ITEM_CHANEL]: (itemId: number) => Promise<void>;
-      [COMPLETE_ITEM_CHANNEL]: (
-        ShoppingListItem: ShoppingListItem
-      ) => Promise<void>;
+      [JOIN_ROOM_CHANNEL]: (shoppingListSlug: string) => void;
+      [NEW_ITEM_CHANNEL]: (payload: {
+        shoppingListSlug: string;
+        shoppingListItem: ShoppingListItem;
+      }) => Promise<void>;
+      [DELETE_ITEM_CHANEL]: (payload: {
+        shoppingListSlug: string;
+        shoppingListItemId: number;
+      }) => Promise<void>;
+      [COMPLETE_ITEM_CHANNEL]: (payload: {
+        shoppingListSlug: string;
+        shoppingListItem: ShoppingListItem;
+      }) => Promise<void>;
     }>;
   }
 }
@@ -48,40 +57,40 @@ async function buildServer() {
   });
 
   app.io.on("connection", async (io) => {
-    io.on(NEW_ITEM_CHANNEL, async (shoppingListItem: ShoppingListItem) => {
-      if (!shoppingListItem) {
-        return;
+    io.on(JOIN_ROOM_CHANNEL, async (shoppingListSlug: string) => {
+      console.log("join", shoppingListSlug);
+
+      // Get the room the client is currently in
+      const currentRoom = await publisher.get(io.id);
+
+      // If the client is in a room, remove it from that room
+      if (currentRoom) {
+        io.leave(currentRoom);
       }
 
-      console.log("add item", shoppingListItem);
+      // Add the client to the new room
+      io.join(shoppingListSlug);
 
-      await publisher.publish(
-        NEW_ITEM_CHANNEL,
-        JSON.stringify(shoppingListItem)
-      );
+      // Store the room the client is in in Redis
+      await publisher.set(io.id, shoppingListSlug);
     });
 
-    io.on(COMPLETE_ITEM_CHANNEL, async (shoppingListItem: ShoppingListItem) => {
-      if (!shoppingListItem) {
-        return;
-      }
+    io.on(NEW_ITEM_CHANNEL, async (payload) => {
+      console.log("add item", payload);
 
-      console.log("complete item", shoppingListItem);
-
-      await publisher.publish(
-        COMPLETE_ITEM_CHANNEL,
-        JSON.stringify(shoppingListItem)
-      );
+      await publisher.publish(NEW_ITEM_CHANNEL, JSON.stringify(payload));
     });
 
-    io.on(DELETE_ITEM_CHANEL, async (itemId: number) => {
-      if (!itemId) {
-        return;
-      }
+    io.on(COMPLETE_ITEM_CHANNEL, async (payload) => {
+      console.log("complete item", payload);
 
-      console.log("delete item", itemId);
+      await publisher.publish(COMPLETE_ITEM_CHANNEL, JSON.stringify(payload));
+    });
 
-      await publisher.publish(DELETE_ITEM_CHANEL, JSON.stringify(itemId));
+    io.on(DELETE_ITEM_CHANEL, async (payload) => {
+      console.log("delete item", payload);
+
+      await publisher.publish(DELETE_ITEM_CHANEL, JSON.stringify(payload));
     });
   });
 
@@ -93,13 +102,24 @@ async function buildServer() {
   });
 
   subscriber.on("message", (channel, text) => {
-    if (CHANNELS.includes(channel as Channel)) {
-      app.io.emit(channel as Channel, {
-        ...JSON.parse(text),
-        id: randomUUID(),
-      });
-
-      return;
+    if (channel === NEW_ITEM_CHANNEL) {
+      const payload = JSON.parse(text) as {
+        shoppingListSlug: string;
+        shoppingListItem: ShoppingListItem;
+      };
+      app.io.to(payload.shoppingListSlug).emit(NEW_ITEM_CHANNEL, payload);
+    } else if (channel === COMPLETE_ITEM_CHANNEL) {
+      const payload = JSON.parse(text) as {
+        shoppingListSlug: string;
+        shoppingListItem: ShoppingListItem;
+      };
+      app.io.to(payload.shoppingListSlug).emit(COMPLETE_ITEM_CHANNEL, payload);
+    } else if (channel === DELETE_ITEM_CHANEL) {
+      const payload = JSON.parse(text) as {
+        shoppingListSlug: string;
+        shoppingListItemId: number;
+      };
+      app.io.to(payload.shoppingListSlug).emit(DELETE_ITEM_CHANEL, payload);
     }
   });
 

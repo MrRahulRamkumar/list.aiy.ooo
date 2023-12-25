@@ -47,7 +47,6 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { useSocket } from "@/lib/hooks";
 import { NEW_ITEM_CHANNEL } from "@/lib/constants";
 import { ListPageContext } from "@/lib/list-page-context";
 
@@ -74,9 +73,11 @@ const formSchema = z.object({
 interface AddToShoppingListFormProps {
   className?: string;
   shoppingListId: number;
+  shoppingListSlug: string;
   setOpen: (open: boolean) => void;
 }
 function AddToShoppingListForm({
+  shoppingListSlug,
   shoppingListId,
   setOpen,
   className,
@@ -86,7 +87,10 @@ function AddToShoppingListForm({
   const addToShoppingList = api.shoppingList.addShoppingListItem.useMutation({
     onSuccess: (item) => {
       setOpen(false);
-      context?.socket?.emit(NEW_ITEM_CHANNEL, { item });
+      context?.socket?.emit(NEW_ITEM_CHANNEL, {
+        shoppingListSlug,
+        shoppingListItem: item,
+      });
     },
   });
 
@@ -184,9 +188,11 @@ function AddToShoppingListForm({
 }
 
 interface AddToShoppingListDialogProps {
+  shoppingListSlug: string;
   shoppingListId: number;
 }
 export function AddToShoppingListDialog({
+  shoppingListSlug,
   shoppingListId,
 }: AddToShoppingListDialogProps) {
   const [open, setOpen] = useState(false);
@@ -211,6 +217,7 @@ export function AddToShoppingListDialog({
           </DialogHeader>
           <AddToShoppingListForm
             setOpen={setOpen}
+            shoppingListSlug={shoppingListSlug}
             shoppingListId={shoppingListId}
           />
           <DialogFooter>
@@ -243,6 +250,7 @@ export function AddToShoppingListDialog({
         <AddToShoppingListForm
           className="px-4"
           setOpen={setOpen}
+          shoppingListSlug={shoppingListSlug}
           shoppingListId={shoppingListId}
         />
         <DrawerFooter>

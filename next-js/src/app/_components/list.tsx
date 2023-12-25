@@ -60,7 +60,10 @@ export function List({ slug }: ListProps) {
           </div>
           <br />
           <div className="flex items-center justify-center p-4">
-            <AddToShoppingListDialog shoppingListId={shoppingList.id} />
+            <AddToShoppingListDialog
+              shoppingListSlug={slug}
+              shoppingListId={shoppingList.id}
+            />
           </div>
         </CardContent>
       </Card>

@@ -16,6 +16,7 @@ import {
   NEW_ITEM_CHANNEL,
   COMPLETE_ITEM_CHANNEL,
   DELETE_ITEM_CHANEL,
+  JOIN_ROOM_CHANNEL,
 } from "@/lib/constants";
 
 export default function Page({ params }: { params: { slug: string } }) {
@@ -27,11 +28,16 @@ export default function Page({ params }: { params: { slug: string } }) {
   useEffect(() => {
     context?.socket?.on("connect", () => {
       console.log("connected to socket", context?.socket?.id);
+      // Request to join a room
+      context?.socket?.emit(JOIN_ROOM_CHANNEL, slug);
     });
 
     context?.socket?.on(
       NEW_ITEM_CHANNEL,
-      (payload: { item: SelectShoppingListItemWithRelations }) => {
+      (payload: {
+        shoppingListItemSlug: string;
+        shoppingListItem: SelectShoppingListItemWithRelations;
+      }) => {
         console.log("new item", payload);
         utils.shoppingList.getShoppingList.setData(slug, (prevShoppingList) => {
           if (!prevShoppingList) {
@@ -40,9 +46,9 @@ export default function Page({ params }: { params: { slug: string } }) {
 
           const items = [
             {
-              ...payload.item,
-              updatedAt: new Date(payload.item.updatedAt),
-              createdAt: new Date(payload.item.createdAt),
+              ...payload.shoppingListItem,
+              updatedAt: new Date(payload.shoppingListItem.updatedAt),
+              createdAt: new Date(payload.shoppingListItem.createdAt),
             },
             ...prevShoppingList.items,
           ];
@@ -57,7 +63,10 @@ export default function Page({ params }: { params: { slug: string } }) {
 
     context?.socket?.on(
       COMPLETE_ITEM_CHANNEL,
-      (payload: { item: SelectShoppingListItemWithRelations }) => {
+      (payload: {
+        shoppingListItemSlug: string;
+        shoppingListItem: SelectShoppingListItemWithRelations;
+      }) => {
         console.log("complete item", payload);
         utils.shoppingList.getShoppingList.setData(slug, (prevShoppingList) => {
           if (!prevShoppingList) {
@@ -66,13 +75,13 @@ export default function Page({ params }: { params: { slug: string } }) {
 
           const items = prevShoppingList.items
             .map((item) => {
-              if (item.id === payload.item.id) {
+              if (item.id === payload.shoppingListItem.id) {
                 return {
-                  ...payload.item,
-                  createdAt: new Date(payload.item.createdAt),
-                  updatedAt: new Date(payload.item.updatedAt),
-                  completedAt: payload.item.completedAt
-                    ? new Date(payload.item.completedAt)
+                  ...payload.shoppingListItem,
+                  createdAt: new Date(payload.shoppingListItem.createdAt),
+                  updatedAt: new Date(payload.shoppingListItem.updatedAt),
+                  completedAt: payload.shoppingListItem.completedAt
+                    ? new Date(payload.shoppingListItem.completedAt)
                     : null,
                 };
               }
@@ -102,7 +111,7 @@ export default function Page({ params }: { params: { slug: string } }) {
 
     context?.socket?.on(
       DELETE_ITEM_CHANEL,
-      (payload: { shoppingListItemId: number }) => {
+      (payload: { shoppingListSlug: string; shoppingListItemId: number }) => {
         console.log("delete item", payload);
         utils.shoppingList.getShoppingList.setData(slug, (prevShoppingList) => {
           if (!prevShoppingList) {

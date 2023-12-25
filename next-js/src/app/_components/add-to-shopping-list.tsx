@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "@/trpc/react";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
 import { cn } from "@/lib/utils";
 import {
@@ -47,6 +47,9 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import { useSocket } from "@/lib/hooks";
+import { NEW_ITEM_CHANNEL } from "@/lib/constants";
+import { ListPageContext } from "@/lib/list-page-context";
 
 const formSchema = z.object({
   name: z
@@ -70,21 +73,20 @@ const formSchema = z.object({
 
 interface AddToShoppingListFormProps {
   className?: string;
-  shoppingListSlug: string;
   shoppingListId: number;
   setOpen: (open: boolean) => void;
 }
 function AddToShoppingListForm({
-  shoppingListSlug,
   shoppingListId,
   setOpen,
   className,
 }: AddToShoppingListFormProps) {
-  const utils = api.useUtils();
+  const context = useContext(ListPageContext);
+
   const addToShoppingList = api.shoppingList.addShoppingListItem.useMutation({
-    onSuccess: () => {
+    onSuccess: (item) => {
       setOpen(false);
-      void utils.shoppingList.getShoppingList.invalidate(shoppingListSlug);
+      context?.socket?.emit(NEW_ITEM_CHANNEL, { item });
     },
   });
 
@@ -182,11 +184,9 @@ function AddToShoppingListForm({
 }
 
 interface AddToShoppingListDialogProps {
-  shoppingListSlug: string;
   shoppingListId: number;
 }
 export function AddToShoppingListDialog({
-  shoppingListSlug,
   shoppingListId,
 }: AddToShoppingListDialogProps) {
   const [open, setOpen] = useState(false);
@@ -212,7 +212,6 @@ export function AddToShoppingListDialog({
           <AddToShoppingListForm
             setOpen={setOpen}
             shoppingListId={shoppingListId}
-            shoppingListSlug={shoppingListSlug}
           />
           <DialogFooter>
             <DialogClose asChild>
@@ -245,7 +244,6 @@ export function AddToShoppingListDialog({
           className="px-4"
           setOpen={setOpen}
           shoppingListId={shoppingListId}
-          shoppingListSlug={shoppingListSlug}
         />
         <DrawerFooter>
           <DrawerClose asChild>

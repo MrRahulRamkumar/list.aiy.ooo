@@ -9,7 +9,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Loader2, MoreVertical, Trash } from "lucide-react";
 import { api } from "@/trpc/react";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { ListPageContext } from "@/lib/list-page-context";
+import { DELETE_ITEM_CHANEL } from "@/lib/constants";
 
 interface ListDropdownMenuProps {
   shoppingListSlug: string;
@@ -19,12 +21,18 @@ export function ListDropdownMenu({
   shoppingListSlug,
   shoppingListItemId,
 }: ListDropdownMenuProps) {
-  const utils = api.useUtils();
+  const context = useContext(ListPageContext);
+  if (!context) {
+    throw new Error("ListPageContext not initialized");
+  }
+
   const [open, setOpen] = useState(false);
   const deleteShoppingListItem =
     api.shoppingList.deleteShoppingListItem.useMutation({
       onSuccess: () => {
-        void utils.shoppingList.getShoppingList.invalidate(shoppingListSlug);
+        context.socket?.emit(DELETE_ITEM_CHANEL, {
+          shoppingListItemId,
+        });
       },
     });
 

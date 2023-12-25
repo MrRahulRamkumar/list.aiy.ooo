@@ -8,9 +8,123 @@ import { List } from "@/app/_components/list";
 import { useSession } from "next-auth/react";
 import { Loading } from "@/app/_components/loading";
 import { Separator } from "@/components/ui/separator";
+import { api } from "@/trpc/react";
+import { useContext, useEffect, useState } from "react";
+import { ListPageContext } from "@/lib/list-page-context";
+import { type SelectShoppingListItemWithRelations } from "@/server/db/schema";
+import {
+  NEW_ITEM_CHANNEL,
+  COMPLETE_ITEM_CHANNEL,
+  DELETE_ITEM_CHANEL,
+} from "@/lib/constants";
+import { Socket, io } from "socket.io-client";
+import { env } from "@/env";
+import { useSocket } from "@/lib/hooks";
 
 export default function Page({ params }: { params: { slug: string } }) {
+  const utils = api.useUtils();
+  const slug = params.slug;
   const session = useSession();
+  const socket = useSocket();
+
+  useEffect(() => {
+    // if (!socket) {
+    //   console.error("socket not initialized");
+    //   return;
+    // }
+    socket?.on("connect", () => {
+      console.log("connected to socket", socket?.id);
+    });
+
+    socket?.on(
+      NEW_ITEM_CHANNEL,
+      (payload: { item: SelectShoppingListItemWithRelations }) => {
+        console.log("new item", payload);
+        utils.shoppingList.getShoppingList.setData(slug, (prevShoppingList) => {
+          if (!prevShoppingList) {
+            return prevShoppingList;
+          }
+
+          const items = [
+            {
+              ...payload.item,
+              updatedAt: new Date(payload.item.updatedAt),
+              createdAt: new Date(payload.item.createdAt),
+            },
+            ...prevShoppingList.items,
+          ];
+
+          return {
+            ...prevShoppingList,
+            items: items,
+          };
+        });
+      },
+    );
+
+    socket?.on(
+      COMPLETE_ITEM_CHANNEL,
+      (payload: { item: SelectShoppingListItemWithRelations }) => {
+        console.log("complete item", payload);
+        utils.shoppingList.getShoppingList.setData(slug, (prevShoppingList) => {
+          if (!prevShoppingList) {
+            return prevShoppingList;
+          }
+
+          const items = prevShoppingList.items
+            .map((item) => {
+              if (item.id === payload.item.id) {
+                return {
+                  ...payload.item,
+                  createdAt: new Date(payload.item.createdAt),
+                  updatedAt: new Date(payload.item.updatedAt),
+                  completedAt: payload.item.completedAt
+                    ? new Date(payload.item.completedAt)
+                    : null,
+                };
+              }
+              return item;
+            })
+            .sort((a, b) => {
+              if (a.completedAt && !b.completedAt) {
+                return 1;
+              }
+              if (b.completedAt && !a.completedAt) {
+                return -1;
+              }
+              if (a.completedAt && b.completedAt) {
+                return a.completedAt.getTime() - b.completedAt.getTime();
+              }
+
+              return b.createdAt.getTime() - a.createdAt.getTime();
+            });
+
+          return {
+            ...prevShoppingList,
+            items: items,
+          };
+        });
+      },
+    );
+
+    socket?.on(DELETE_ITEM_CHANEL, (payload: { itemId: number }) => {
+      console.log("delete item", payload);
+      utils.shoppingList.getShoppingList.setData(slug, (prevShoppingList) => {
+        if (!prevShoppingList) {
+          return prevShoppingList;
+        }
+
+        const items = prevShoppingList.items.filter((item) => {
+          return item.id !== payload.itemId;
+        });
+
+        return {
+          ...prevShoppingList,
+          items: items,
+        };
+      });
+    });
+  }, [socket]);
 
   if (session.status === "loading") {
     return (
@@ -39,7 +153,9 @@ export default function Page({ params }: { params: { slug: string } }) {
       </Link>
       <Separator />
 
-      <List slug={params.slug} />
+      <ListPageContext.Provider value={{ socket }}>
+        <List slug={params.slug} />
+      </ListPageContext.Provider>
     </div>
   );
 }

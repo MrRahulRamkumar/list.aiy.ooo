@@ -9,6 +9,9 @@ import {
 } from "@/server/db/schema";
 import { useSession } from "next-auth/react";
 import clsx from "clsx";
+import { COMPLETE_ITEM_CHANNEL } from "@/lib/constants";
+import { ListPageContext } from "@/lib/list-page-context";
+import { useContext } from "react";
 
 interface ListItemProps {
   slug: string;
@@ -23,13 +26,14 @@ export function ListItem({
   completedBy,
   createdBy,
 }: ListItemProps) {
-  const utils = api.useUtils();
   const session = useSession();
+  const context = useContext(ListPageContext);
 
   const completeShoppingListItem =
     api.shoppingList.completeShoppingListItem.useMutation({
-      onSuccess: () => {
-        void utils.shoppingList.getShoppingList.invalidate(slug);
+      onSuccess: (item) => {
+        console.log(context?.socket?.id);
+        context?.socket?.emit(COMPLETE_ITEM_CHANNEL, { item });
       },
     });
 

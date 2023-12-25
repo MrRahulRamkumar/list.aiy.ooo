@@ -5,12 +5,24 @@ import { redirect } from "next/navigation";
 import { Loading } from "@/app/_components/loading";
 import { ListItem } from "@/app/_components/list-item";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useContext, useEffect } from "react";
+import {
+  COMPLETE_ITEM_CHANNEL,
+  DELETE_ITEM_CHANEL,
+  NEW_ITEM_CHANNEL,
+} from "@/lib/constants";
+import { type SelectShoppingListItemWithRelations } from "@/server/db/schema";
+import { ListPageContext } from "@/lib/list-page-context";
+import { io } from "socket.io-client";
+import { env } from "@/env";
 
 interface ListProps {
   slug: string;
 }
 
 export function List({ slug }: ListProps) {
+  const utils = api.useUtils();
+  const context = useContext(ListPageContext);
   const [animationParent] = useAutoAnimate();
   const { data: shoppingList, isLoading } =
     api.shoppingList.getShoppingList.useQuery(slug);
@@ -60,10 +72,7 @@ export function List({ slug }: ListProps) {
           </div>
           <br />
           <div className="flex items-center justify-center p-4">
-            <AddToShoppingListDialog
-              shoppingListSlug={slug}
-              shoppingListId={shoppingList.id}
-            />
+            <AddToShoppingListDialog shoppingListId={shoppingList.id} />
           </div>
         </CardContent>
       </Card>

@@ -222,3 +222,8 @@ export type SelectShoppingListWithRelations = SelectShoppingList & {
   createdBy: SelectUser;
   collaborators: SelectUser[];
 };
+
+export type SelectShoppingListItemWithRelations = SelectShoppingListItem & {
+  createdBy: SelectUser;
+  completedBy: SelectUser | null;
+};

@@ -177,13 +177,21 @@ export const shoppingListRouter = createTRPCRouter({
         unit: z.enum(unitValues).optional(),
       }),
     )
-    .mutation(({ ctx, input }) => {
-      return ctx.db.insert(shoppingListItems).values({
+    .mutation(async ({ ctx, input }) => {
+      const result = await ctx.db.insert(shoppingListItems).values({
         name: input.name,
         quantity: input.quantity,
         unit: input.unit,
         shoppingListId: input.shoppingListId,
         createdById: ctx.session.user.id,
+      });
+
+      return ctx.db.query.shoppingListItems.findFirst({
+        where: eq(shoppingListItems.id, parseInt(result.insertId)),
+        with: {
+          createdBy: true,
+          completedBy: true,
+        },
       });
     }),
   completeShoppingListItem: protectedProcedure
@@ -210,7 +218,13 @@ export const shoppingListRouter = createTRPCRouter({
       `;
 
       await ctx.db.execute(statement);
-      return { success: true };
+      return ctx.db.query.shoppingListItems.findFirst({
+        where: eq(shoppingListItems.id, input),
+        with: {
+          createdBy: true,
+          completedBy: true,
+        },
+      });
     }),
   deleteShoppingListItem: protectedProcedure
     .input(z.number())

@@ -1,18 +1,21 @@
 "use client";
 
+import { useSocket } from "@/lib/hooks";
 import { ListPageContext } from "@/lib/list-page-context";
 import { SessionProvider } from "next-auth/react";
-import { useState } from "react";
-import { type Socket } from "socket.io-client";
 
 export default function PageLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const socket = useSocket();
+
   return (
     <SessionProvider>
-      <>{children}</>
+      <ListPageContext.Provider value={{ socket }}>
+        <>{children}</>
+      </ListPageContext.Provider>
     </SessionProvider>
   );
 }

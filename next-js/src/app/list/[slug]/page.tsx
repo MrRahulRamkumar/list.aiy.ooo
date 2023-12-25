@@ -9,7 +9,7 @@ import { useSession } from "next-auth/react";
 import { Loading } from "@/app/_components/loading";
 import { Separator } from "@/components/ui/separator";
 import { api } from "@/trpc/react";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { ListPageContext } from "@/lib/list-page-context";
 import { type SelectShoppingListItemWithRelations } from "@/server/db/schema";
 import {
@@ -17,22 +17,19 @@ import {
   COMPLETE_ITEM_CHANNEL,
   DELETE_ITEM_CHANEL,
 } from "@/lib/constants";
-import { Socket, io } from "socket.io-client";
-import { env } from "@/env";
-import { useSocket } from "@/lib/hooks";
 
 export default function Page({ params }: { params: { slug: string } }) {
   const utils = api.useUtils();
   const slug = params.slug;
   const session = useSession();
-  const socket = useSocket();
+  const context = useContext(ListPageContext);
 
   useEffect(() => {
-    socket?.on("connect", () => {
-      console.log("connected to socket", socket?.id);
+    context?.socket?.on("connect", () => {
+      console.log("connected to socket", context?.socket?.id);
     });
 
-    socket?.on(
+    context?.socket?.on(
       NEW_ITEM_CHANNEL,
       (payload: { item: SelectShoppingListItemWithRelations }) => {
         console.log("new item", payload);
@@ -58,7 +55,7 @@ export default function Page({ params }: { params: { slug: string } }) {
       },
     );
 
-    socket?.on(
+    context?.socket?.on(
       COMPLETE_ITEM_CHANNEL,
       (payload: { item: SelectShoppingListItemWithRelations }) => {
         console.log("complete item", payload);
@@ -103,7 +100,7 @@ export default function Page({ params }: { params: { slug: string } }) {
       },
     );
 
-    socket?.on(
+    context?.socket?.on(
       DELETE_ITEM_CHANEL,
       (payload: { shoppingListItemId: number }) => {
         console.log("delete item", payload);
@@ -123,7 +120,7 @@ export default function Page({ params }: { params: { slug: string } }) {
         });
       },
     );
-  }, [socket]);
+  }, [context?.socket]);
 
   if (session.status === "loading") {
     return (
@@ -151,10 +148,7 @@ export default function Page({ params }: { params: { slug: string } }) {
         </Button>
       </Link>
       <Separator />
-
-      <ListPageContext.Provider value={{ socket }}>
-        <List slug={params.slug} />
-      </ListPageContext.Provider>
+      <List slug={slug} />
     </div>
   );
 }

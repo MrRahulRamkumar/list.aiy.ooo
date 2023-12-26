@@ -9,7 +9,7 @@ import { useSession } from "next-auth/react";
 import { Loading } from "@/app/_components/loading";
 import { Separator } from "@/components/ui/separator";
 import { api } from "@/trpc/react";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ListPageContext } from "@/lib/list-page-context";
 import { type SelectShoppingListItemWithRelations } from "@/server/db/schema";
 import {
@@ -24,21 +24,27 @@ export default function Page({ params }: { params: { slug: string } }) {
   const slug = params.slug;
   const session = useSession();
   const context = useContext(ListPageContext);
+  const [socketConnecting, setSocketConnecting] = useState(true);
 
   useEffect(() => {
-    context?.socket?.on("connect", () => {
+    if (!context?.socket) {
+      return;
+    }
+
+    context.socket.on("connect", () => {
       console.log("connected to socket", context?.socket?.id);
+
       // Request to join a room
       context?.socket?.emit(JOIN_ROOM_CHANNEL, slug);
+      setSocketConnecting(false);
     });
 
-    context?.socket?.on(
+    context.socket.on(
       NEW_ITEM_CHANNEL,
       (payload: {
         shoppingListItemSlug: string;
         shoppingListItem: SelectShoppingListItemWithRelations;
       }) => {
-        console.log("new item", payload);
         utils.shoppingList.getShoppingList.setData(slug, (prevShoppingList) => {
           if (!prevShoppingList) {
             return prevShoppingList;
@@ -61,13 +67,12 @@ export default function Page({ params }: { params: { slug: string } }) {
       },
     );
 
-    context?.socket?.on(
+    context.socket.on(
       COMPLETE_ITEM_CHANNEL,
       (payload: {
         shoppingListItemSlug: string;
         shoppingListItem: SelectShoppingListItemWithRelations;
       }) => {
-        console.log("complete item", payload);
         utils.shoppingList.getShoppingList.setData(slug, (prevShoppingList) => {
           if (!prevShoppingList) {
             return prevShoppingList;
@@ -109,10 +114,9 @@ export default function Page({ params }: { params: { slug: string } }) {
       },
     );
 
-    context?.socket?.on(
+    context.socket.on(
       DELETE_ITEM_CHANEL,
       (payload: { shoppingListSlug: string; shoppingListItemId: number }) => {
-        console.log("delete item", payload);
         utils.shoppingList.getShoppingList.setData(slug, (prevShoppingList) => {
           if (!prevShoppingList) {
             return prevShoppingList;
@@ -129,9 +133,23 @@ export default function Page({ params }: { params: { slug: string } }) {
         });
       },
     );
+
+    return function () {
+      if (!context?.socket) {
+        return;
+      }
+      // Remove all event listeners
+      context.socket.off("connect");
+      context.socket.off(NEW_ITEM_CHANNEL);
+      context.socket.off(COMPLETE_ITEM_CHANNEL);
+      context.socket.off(DELETE_ITEM_CHANEL);
+
+      // Close the socket connection
+      context.socket.disconnect();
+    };
   }, [context?.socket]);
 
-  if (session.status === "loading") {
+  if (session.status === "loading" || socketConnecting) {
     return (
       <div>
         <Link href="/">

@@ -32,7 +32,6 @@ export function ListItem({
   const completeShoppingListItem =
     api.shoppingList.completeShoppingListItem.useMutation({
       onSuccess: (item) => {
-        console.log(context?.socket?.id);
         context?.socket?.emit(COMPLETE_ITEM_CHANNEL, {
           shoppingListItem: item,
           shoppingListSlug: slug,

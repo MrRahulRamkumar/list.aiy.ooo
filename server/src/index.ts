@@ -58,8 +58,6 @@ async function buildServer() {
 
   app.io.on("connection", async (io) => {
     io.on(JOIN_ROOM_CHANNEL, async (shoppingListSlug: string) => {
-      console.log("join", shoppingListSlug);
-
       // Get the room the client is currently in
       const currentRoom = await publisher.get(io.id);
 
@@ -76,20 +74,14 @@ async function buildServer() {
     });
 
     io.on(NEW_ITEM_CHANNEL, async (payload) => {
-      console.log("add item", payload);
-
       await publisher.publish(NEW_ITEM_CHANNEL, JSON.stringify(payload));
     });
 
     io.on(COMPLETE_ITEM_CHANNEL, async (payload) => {
-      console.log("complete item", payload);
-
       await publisher.publish(COMPLETE_ITEM_CHANNEL, JSON.stringify(payload));
     });
 
     io.on(DELETE_ITEM_CHANEL, async (payload) => {
-      console.log("delete item", payload);
-
       await publisher.publish(DELETE_ITEM_CHANEL, JSON.stringify(payload));
     });
   });

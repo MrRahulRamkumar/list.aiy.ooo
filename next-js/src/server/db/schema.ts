@@ -4,6 +4,7 @@ import {
   datetime,
   index,
   int,
+  mysqlTable,
   mysqlTableCreator,
   primaryKey,
   text,
@@ -18,9 +19,19 @@ import { type AdapterAccount } from "next-auth/adapters";
  *
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
-export const mysqlTable = mysqlTableCreator((name) => `shopping-list_${name}`);
+export const projectTable = mysqlTableCreator(
+  (name) => `shopping-list_${name}`,
+);
 
-export const posts = mysqlTable(
+export const shortLinks = mysqlTable("ShortLink", {
+  id: varchar("id", { length: 191 }).primaryKey(),
+  url: varchar("url", { length: 3000 }).notNull(),
+  slug: varchar("slug", { length: 191 }).notNull(),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  userId: varchar("userId", { length: 191 }),
+});
+
+export const posts = projectTable(
   "post",
   {
     id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
@@ -39,7 +50,7 @@ export const posts = mysqlTable(
   }),
 );
 
-export const shoppingLists = mysqlTable(
+export const shoppingLists = projectTable(
   "shoppingList",
   {
     id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
@@ -60,7 +71,7 @@ export const shoppingLists = mysqlTable(
   }),
 );
 
-export const shoppingListCollaborators = mysqlTable(
+export const shoppingListCollaborators = projectTable(
   "shoppingListCollaborator",
   {
     shoppingListId: bigint("shoppingListId", { mode: "number" }).notNull(),
@@ -99,7 +110,7 @@ export const shoppingListsRelations = relations(
 
 export const unitValues = ["kg", "g", "L", "ml", "pcs"] as const;
 
-export const shoppingListItems = mysqlTable("shoppingListItem", {
+export const shoppingListItems = projectTable("shoppingListItem", {
   id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
   shoppingListId: bigint("shoppingListId", { mode: "number" }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
@@ -134,7 +145,7 @@ export const shoppingListItemsRelations = relations(
   }),
 );
 
-export const users = mysqlTable("user", {
+export const users = projectTable("user", {
   id: varchar("id", { length: 255 }).notNull().primaryKey(),
   name: varchar("name", { length: 255 }),
   email: varchar("email", { length: 255 }).notNull(),
@@ -151,7 +162,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   shoppingLists: many(shoppingLists),
 }));
 
-export const accounts = mysqlTable(
+export const accounts = projectTable(
   "account",
   {
     userId: varchar("userId", { length: 255 }).notNull(),
@@ -178,7 +189,7 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
   user: one(users, { fields: [accounts.userId], references: [users.id] }),
 }));
 
-export const sessions = mysqlTable(
+export const sessions = projectTable(
   "session",
   {
     sessionToken: varchar("sessionToken", { length: 255 })
@@ -196,7 +207,7 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
   user: one(users, { fields: [sessions.userId], references: [users.id] }),
 }));
 
-export const verificationTokens = mysqlTable(
+export const verificationTokens = projectTable(
   "verificationToken",
   {
     identifier: varchar("identifier", { length: 255 }).notNull(),

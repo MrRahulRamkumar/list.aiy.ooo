@@ -8,9 +8,11 @@ import {
   shoppingLists,
   unitValues,
   users,
+  shortLinks,
 } from "@/server/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/mysql-core";
+import { TRPCError } from "@trpc/server";
 
 export const shoppingListRouter = createTRPCRouter({
   getYourShoppingLists: protectedProcedure.query(async ({ ctx }) => {
@@ -160,13 +162,28 @@ export const shoppingListRouter = createTRPCRouter({
         description: z.string().min(1).max(255),
       }),
     )
-    .mutation(({ ctx, input }) => {
-      return ctx.db.insert(shoppingLists).values({
+    .mutation(async ({ ctx, input }) => {
+      const result = await ctx.db.insert(shoppingLists).values({
         name: input.name,
         description: input.description,
         slug: createId(),
         createdById: ctx.session.user.id,
       });
+
+      const shoppingList = await ctx.db.query.shoppingLists.findFirst({
+        where: eq(shoppingLists.id, parseInt(result.insertId)),
+      });
+
+      if (!shoppingList) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const shortLinkId = createId();
+      await ctx.db.insert(shortLinks).values({
+        id: shortLinkId,
+        url: `https://list.aiy.ooo/list/${shoppingList.slug}`,
+        slug: shoppingList.slug,
+      });
+
+      return shoppingList;
     }),
   addShoppingListItem: protectedProcedure
     .input(
@@ -198,9 +215,9 @@ export const shoppingListRouter = createTRPCRouter({
     .input(z.number())
     .mutation(async ({ ctx, input }) => {
       const statement = sql`
-      update
+      UPDATE
         ${shoppingListItems}
-      set
+      SET
         completedAt = (
           CASE
             WHEN completedAt IS NULL THEN CURRENT_TIMESTAMP(3)
@@ -213,7 +230,7 @@ export const shoppingListRouter = createTRPCRouter({
             ELSE null
           END
         )
-      where
+      WHERE
         id = ${input};
       `;
 

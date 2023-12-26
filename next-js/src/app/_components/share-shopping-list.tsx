@@ -116,16 +116,14 @@ export function ShareDialogContent({
           className="w-full"
           id="share-link"
           readOnly
-          value={`https://list.aiy.ooo/list/${slug}`}
+          value={`https://aiy.ooo/${slug}`}
         />
         <Button
           size="sm"
           variant="outline"
           type="submit"
           onClick={() => {
-            void navigator.clipboard.writeText(
-              `https://list.aiy.ooo/list/${slug}`,
-            );
+            void navigator.clipboard.writeText(`https://aiy.ooo/${slug}`);
             toast({
               title: "Hey yoo!",
               description: "Link copied to clipboard!",

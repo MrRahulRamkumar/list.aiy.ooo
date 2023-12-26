@@ -37,12 +37,10 @@ export function ListDropdownMenu({
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger>
-        <Button variant="ghost">
-          {deleteShoppingListItem.isLoading && (
-            <Loader2 className="animate-spin" />
-          )}
-          {!deleteShoppingListItem.isLoading && <MoreVertical />}
-        </Button>
+        {deleteShoppingListItem.isLoading && (
+          <Loader2 className="animate-spin" />
+        )}
+        {!deleteShoppingListItem.isLoading && <MoreVertical />}
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuItem

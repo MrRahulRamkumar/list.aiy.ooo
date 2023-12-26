@@ -173,12 +173,10 @@ export function ShareDialogContent({
               <ul className="list-none space-y-4">
                 {collaborators.map((c) => {
                   return (
-                    <>
-                      <ShareDialogCollaboratorListItem
-                        key={c.id}
-                        collaborator={c}
-                      />
-                    </>
+                    <ShareDialogCollaboratorListItem
+                      key={c.id}
+                      collaborator={c}
+                    />
                   );
                 })}
               </ul>

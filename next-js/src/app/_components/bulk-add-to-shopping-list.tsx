@@ -1,8 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Loader2, Plus } from "lucide-react";
+import { ListPlus, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,18 +10,10 @@ import { useContext, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
 import { cn } from "@/lib/utils";
 import {
-  SelectValue,
-  SelectTrigger,
-  SelectItem,
-  SelectContent,
-  Select,
-} from "@/components/ui/select";
-import {
   Form,
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import {
@@ -49,60 +40,56 @@ import {
 } from "@/components/ui/drawer";
 import { NEW_ITEM_CHANNEL } from "@/lib/constants";
 import { ListPageContext } from "@/lib/list-page-context";
+import { Textarea } from "@/components/ui/text-area";
+import { useToast } from "@/components/ui/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 
 const formSchema = z.object({
-  name: z
-    .string()
-    .min(1, {
-      message: "Name must be at least 1 character",
-    })
-    .max(255, {
-      message: "Name must be less than 255 characters",
-    }),
-  quantity: z.coerce
-    .number({
-      invalid_type_error: "Quantity must be a number",
-    })
-    .min(1, {
-      message: "Quantity must be at least 1",
-    })
-    .optional(),
-  unit: z.enum(["kg", "g", "L", "ml", "pcs"]).optional(),
+  text: z.string().min(1, {
+    message: "Input must be at least 1 character",
+  }),
 });
 
-interface AddToShoppingListFormProps {
+interface BulkAddToShoppingListFormProps {
   className?: string;
   shoppingListId: number;
   shoppingListSlug: string;
   setOpen: (open: boolean) => void;
 }
-function AddToShoppingListForm({
+function BulkAddToShoppingListForm({
   shoppingListSlug,
   shoppingListId,
   setOpen,
   className,
-}: AddToShoppingListFormProps) {
+}: BulkAddToShoppingListFormProps) {
   const context = useContext(ListPageContext);
+  const { toast } = useToast();
 
-  const addToShoppingList = api.shoppingList.addShoppingListItem.useMutation({
-    onSuccess: (item) => {
-      setOpen(false);
-      context?.socket?.emit(NEW_ITEM_CHANNEL, {
-        shoppingListSlug,
-        shoppingListItems: [item],
-      });
-    },
-  });
+  const bulkAddToShoppingList =
+    api.shoppingList.bulkAddShoppingListItem.useMutation({
+      onSuccess: (items) => {
+        setOpen(false);
+        toast({
+          title: "Hey yoo!",
+          description: `${items.length} items added!`,
+          action: <ToastAction altText="Okay">Okay</ToastAction>,
+        });
+        context?.socket?.emit(NEW_ITEM_CHANNEL, {
+          shoppingListSlug,
+          shoppingListItems: items,
+        });
+      },
+    });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
+      text: "",
     },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    addToShoppingList.mutate({
+    bulkAddToShoppingList.mutate({
       shoppingListId,
       ...values,
     });
@@ -116,70 +103,34 @@ function AddToShoppingListForm({
       >
         <FormField
           control={form.control}
-          name="name"
+          name="text"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Item name</FormLabel>
               <FormControl>
-                <Input placeholder="Milk" {...field} />
+                <Textarea
+                  placeholder={`Milk 2 liters
+Eggs 12 
+Flour 1 kg
+Cheese 500 g`}
+                  className="h-60 resize-none"
+                  {...field}
+                />
               </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="quantity"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Quantity</FormLabel>
-              <FormControl>
-                <Input type="number" placeholder="-" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="unit"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Unit</FormLabel>
-              <Select
-                disabled={form.getValues("quantity") === undefined}
-                required={form.getValues("quantity") !== undefined}
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="-" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="kg">Kg</SelectItem>
-                  <SelectItem value="g">g</SelectItem>
-                  <SelectItem value="L">L</SelectItem>
-                  <SelectItem value="ml">mL</SelectItem>
-                  <SelectItem value="pcs">Pcs</SelectItem>
-                </SelectContent>
-              </Select>
               <FormMessage />
             </FormItem>
           )}
         />
         <div className="flex flex-col justify-end gap-4 pt-8">
           <Button
-            disabled={addToShoppingList.isLoading}
+            disabled={bulkAddToShoppingList.isLoading}
             className="w-full"
             type="submit"
           >
-            {addToShoppingList.isLoading && (
+            {bulkAddToShoppingList.isLoading && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             )}
-            {addToShoppingList.isLoading && "Adding..."}
-            {!addToShoppingList.isLoading && "Add"}
+            {bulkAddToShoppingList.isLoading && "Adding..."}
+            {!bulkAddToShoppingList.isLoading && "Add"}
           </Button>
         </div>
       </form>
@@ -187,14 +138,14 @@ function AddToShoppingListForm({
   );
 }
 
-interface AddToShoppingListDialogProps {
+interface BulkAddToShoppingListDialogProps {
   shoppingListSlug: string;
   shoppingListId: number;
 }
-export function AddToShoppingListDialog({
+export function BulkAddToShoppingListDialog({
   shoppingListSlug,
   shoppingListId,
-}: AddToShoppingListDialogProps) {
+}: BulkAddToShoppingListDialogProps) {
   const [open, setOpen] = useState(false);
 
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -204,18 +155,18 @@ export function AddToShoppingListDialog({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <Button variant="ghost">
-            <Plus className="h-6 w-6" />
+            <ListPlus className="h-6 w-6" />
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Add item</DialogTitle>
+            <DialogTitle>Bulk add items</DialogTitle>
             <DialogDescription>
-              Fill in the details of the item you want to add to your shopping
-              list.
+              Just paste your shopping list, we'll take care of the rest! Make
+              sure each item is on a new line.
             </DialogDescription>
           </DialogHeader>
-          <AddToShoppingListForm
+          <BulkAddToShoppingListForm
             setOpen={setOpen}
             shoppingListSlug={shoppingListSlug}
             shoppingListId={shoppingListId}
@@ -236,18 +187,18 @@ export function AddToShoppingListDialog({
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
         <Button variant="ghost">
-          <Plus className="h-6 w-6" />
+          <ListPlus className="h-6 w-6" />
         </Button>
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="text-left">
-          <DrawerTitle>Add item</DrawerTitle>
+          <DrawerTitle>Bulk add items</DrawerTitle>
           <DrawerDescription>
-            Fill in the details of the item you want to add to your shopping
-            list.
+            Just paste your shopping list, we'll take care of the rest! Make
+            sure each item is on a new line.
           </DrawerDescription>
         </DrawerHeader>
-        <AddToShoppingListForm
+        <BulkAddToShoppingListForm
           className="px-4"
           setOpen={setOpen}
           shoppingListSlug={shoppingListSlug}

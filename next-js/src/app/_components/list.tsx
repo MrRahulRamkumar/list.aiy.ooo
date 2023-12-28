@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { Loading } from "@/app/_components/loading";
 import { ListItem } from "@/app/_components/list-item";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { BulkAddToShoppingListDialog } from "./bulk-add-to-shopping-list";
 
 interface ListProps {
   slug: string;
@@ -61,6 +62,10 @@ export function List({ slug }: ListProps) {
           <br />
           <div className="flex items-center justify-center p-4">
             <AddToShoppingListDialog
+              shoppingListSlug={slug}
+              shoppingListId={shoppingList.id}
+            />
+            <BulkAddToShoppingListDialog
               shoppingListSlug={slug}
               shoppingListId={shoppingList.id}
             />

@@ -20,7 +20,7 @@ declare module "fastify" {
       [JOIN_ROOM_CHANNEL]: (shoppingListSlug: string) => void;
       [NEW_ITEM_CHANNEL]: (payload: {
         shoppingListSlug: string;
-        shoppingListItem: ShoppingListItem;
+        shoppingListItems: ShoppingListItem;
       }) => Promise<void>;
       [DELETE_ITEM_CHANEL]: (payload: {
         shoppingListSlug: string;
@@ -97,7 +97,7 @@ async function buildServer() {
     if (channel === NEW_ITEM_CHANNEL) {
       const payload = JSON.parse(text) as {
         shoppingListSlug: string;
-        shoppingListItem: ShoppingListItem;
+        shoppingListItems: ShoppingListItem;
       };
       app.io.to(payload.shoppingListSlug).emit(NEW_ITEM_CHANNEL, payload);
     } else if (channel === COMPLETE_ITEM_CHANNEL) {

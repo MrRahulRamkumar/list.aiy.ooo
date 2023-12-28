@@ -10,7 +10,7 @@ import {
   users,
   shortLinks,
 } from "@/server/db/schema";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/mysql-core";
 import { TRPCError } from "@trpc/server";
 
@@ -205,6 +205,51 @@ export const shoppingListRouter = createTRPCRouter({
 
       return ctx.db.query.shoppingListItems.findFirst({
         where: eq(shoppingListItems.id, parseInt(result.insertId)),
+        with: {
+          createdBy: true,
+          completedBy: true,
+        },
+      });
+    }),
+  bulkAddShoppingListItem: protectedProcedure
+    .input(
+      z.object({
+        shoppingListId: z.number(),
+        text: z.string().min(1),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const items = input.text
+        .split("\n")
+        .filter((item) => item.trim().length > 0)
+        .map((item, index) => {
+          if (item.length > 255) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `Item at line ${
+                index + 1
+              } is too long. Maximum length is 255 characters.`,
+            });
+          }
+
+          return {
+            name: item.trim(),
+            shoppingListId: input.shoppingListId,
+            createdById: ctx.session.user.id,
+          };
+        });
+
+      const result = await ctx.db.insert(shoppingListItems).values(items);
+
+      const insertIdStart = parseInt(result.insertId);
+      const insertIdEnd = insertIdStart + result.rowsAffected;
+      const insertedIds = Array.from(
+        { length: insertIdEnd - insertIdStart },
+        (_, i) => insertIdStart + i,
+      );
+
+      return ctx.db.query.shoppingListItems.findMany({
+        where: inArray(shoppingListItems.id, insertedIds),
         with: {
           createdBy: true,
           completedBy: true,

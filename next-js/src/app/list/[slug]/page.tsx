@@ -43,7 +43,7 @@ export default function Page({ params }: { params: { slug: string } }) {
       NEW_ITEM_CHANNEL,
       (payload: {
         shoppingListItemSlug: string;
-        shoppingListItem: SelectShoppingListItemWithRelations;
+        shoppingListItems: SelectShoppingListItemWithRelations[];
       }) => {
         utils.shoppingList.getShoppingList.setData(slug, (prevShoppingList) => {
           if (!prevShoppingList) {
@@ -51,11 +51,13 @@ export default function Page({ params }: { params: { slug: string } }) {
           }
 
           const items = [
-            {
-              ...payload.shoppingListItem,
-              updatedAt: new Date(payload.shoppingListItem.updatedAt),
-              createdAt: new Date(payload.shoppingListItem.createdAt),
-            },
+            ...payload.shoppingListItems.map((shoppingListItem) => {
+              return {
+                ...shoppingListItem,
+                updatedAt: new Date(shoppingListItem.updatedAt),
+                createdAt: new Date(shoppingListItem.createdAt),
+              };
+            }),
             ...prevShoppingList.items,
           ];
 

@@ -1,12 +1,13 @@
-import { type Config } from "drizzle-kit";
-
+import { defineConfig } from "drizzle-kit";
 import { env } from "@/env";
 
-export default {
+export default defineConfig({
   schema: "./src/server/db/schema.ts",
-  driver: "mysql2",
+  driver: "pg",
   dbCredentials: {
     connectionString: env.DATABASE_URL,
   },
   tablesFilter: ["shopping-list_*"],
-} satisfies Config;
+  verbose: true,
+  strict: true,
+});

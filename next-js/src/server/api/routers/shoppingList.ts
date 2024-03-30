@@ -11,7 +11,7 @@ import {
   shortLinks,
 } from "@/server/db/schema";
 import { and, eq, inArray, sql } from "drizzle-orm";
-import { alias } from "drizzle-orm/mysql-core";
+import { alias } from "drizzle-orm/pg-core";
 import { TRPCError } from "@trpc/server";
 
 export const shoppingListRouter = createTRPCRouter({
@@ -163,15 +163,19 @@ export const shoppingListRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const result = await ctx.db.insert(shoppingLists).values({
-        name: input.name,
-        description: input.description,
-        slug: createId(),
-        createdById: ctx.session.user.id,
-      });
+      const result = await ctx.db
+        .insert(shoppingLists)
+        .values({
+          name: input.name,
+          description: input.description,
+          slug: createId(),
+          createdById: ctx.session.user.id,
+        })
+        .returning();
 
+      if (!result[0]) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const shoppingList = await ctx.db.query.shoppingLists.findFirst({
-        where: eq(shoppingLists.id, parseInt(result.insertId)),
+        where: eq(shoppingLists.id, result[0].id),
       });
 
       if (!shoppingList) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
@@ -195,16 +199,21 @@ export const shoppingListRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const result = await ctx.db.insert(shoppingListItems).values({
-        name: input.name,
-        quantity: input.quantity,
-        unit: input.unit,
-        shoppingListId: input.shoppingListId,
-        createdById: ctx.session.user.id,
-      });
+      const result = await ctx.db
+        .insert(shoppingListItems)
+        .values({
+          name: input.name,
+          quantity: input.quantity,
+          unit: input.unit,
+          shoppingListId: input.shoppingListId,
+          createdById: ctx.session.user.id,
+        })
+        .returning();
+
+      if (!result[0]) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
       return ctx.db.query.shoppingListItems.findFirst({
-        where: eq(shoppingListItems.id, parseInt(result.insertId)),
+        where: eq(shoppingListItems.id, result[0].id),
         with: {
           createdBy: true,
           completedBy: true,
@@ -239,10 +248,19 @@ export const shoppingListRouter = createTRPCRouter({
           };
         });
 
-      const result = await ctx.db.insert(shoppingListItems).values(items);
+      const result = await ctx.db
+        .insert(shoppingListItems)
+        .values(items)
+        .returning();
 
-      const insertIdStart = parseInt(result.insertId);
-      const insertIdEnd = insertIdStart + result.rowsAffected;
+      const first = result[0];
+      const last = result[result.length - 1];
+      if (!first || !last) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+
+      const insertIdStart = first.id;
+      const insertIdEnd = last.id;
       const insertedIds = Array.from(
         { length: insertIdEnd - insertIdStart },
         (_, i) => insertIdStart + i,
@@ -263,15 +281,15 @@ export const shoppingListRouter = createTRPCRouter({
       UPDATE
         ${shoppingListItems}
       SET
-        completedAt = (
+        "completedAt" = (
           CASE
-            WHEN completedAt IS NULL THEN CURRENT_TIMESTAMP(3)
+            WHEN "completedAt" IS NULL THEN CURRENT_TIMESTAMP(3)
             ELSE null
           END
         ),
-        completedById = (
+        "completedById" = (
           CASE
-            WHEN completedById IS NULL THEN ${ctx.session.user.id}
+            WHEN "completedById" IS NULL THEN ${ctx.session.user.id}
             ELSE null
           END
         )

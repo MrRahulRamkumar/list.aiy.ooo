@@ -1,16 +1,17 @@
-import { type InferSelectModel, relations, sql } from "drizzle-orm";
+import { type InferSelectModel, relations } from "drizzle-orm";
 import {
+  varchar,
   bigint,
-  datetime,
-  index,
-  int,
-  mysqlTable,
-  mysqlTableCreator,
-  primaryKey,
+  pgTableCreator,
+  bigserial,
   text,
   timestamp,
-  varchar,
-} from "drizzle-orm/mysql-core";
+  integer,
+  index,
+  primaryKey,
+  pgTable,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
 
 /**
@@ -19,55 +20,38 @@ import { type AdapterAccount } from "next-auth/adapters";
  *
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
-export const projectTable = mysqlTableCreator(
-  (name) => `shopping-list_${name}`,
-);
+export const projectTable = pgTableCreator((name) => `shopping-list_${name}`);
 
-export const shortLinks = mysqlTable("ShortLink", {
-  id: varchar("id", { length: 191 }).primaryKey(),
-  url: varchar("url", { length: 3000 }).notNull(),
-  slug: varchar("slug", { length: 191 }).notNull(),
+export const shortLinks = pgTable("short-link_shortLink", {
+  id: text("id").primaryKey(),
+  url: text("url").notNull(),
+  slug: text("slug").notNull(),
   createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
-  userId: varchar("userId", { length: 191 }),
+  userId: text("userId").references(() => users.id),
 });
-
-export const posts = projectTable(
-  "post",
-  {
-    id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
-    name: varchar("name", { length: 256 }),
-    createdById: varchar("createdById", { length: 255 }).notNull(),
-    createdAt: datetime("createdAt", { mode: "date", fsp: 3 })
-      .default(sql`CURRENT_TIMESTAMP(3)`)
-      .notNull(),
-    updatedAt: datetime("updatedAt", { mode: "date", fsp: 3 })
-      .default(sql`CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)`)
-      .notNull(),
-  },
-  (example) => ({
-    createdByIdIdx: index("createdById_idx").on(example.createdById),
-    nameIndex: index("name_idx").on(example.name),
-  }),
-);
 
 export const shoppingLists = projectTable(
   "shoppingList",
   {
-    id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
+    id: bigserial("id", { mode: "number" }).primaryKey(),
     slug: varchar("slug", { length: 255 }).notNull().unique(),
     name: varchar("name", { length: 255 }).notNull(),
     description: varchar("description", { length: 255 }),
     createdById: varchar("createdById", { length: 255 }).notNull(),
-    createdAt: datetime("createdAt", { mode: "date", fsp: 3 })
-      .default(sql`CURRENT_TIMESTAMP(3)`)
-      .notNull(),
-    updatedAt: datetime("updatedAt", { mode: "date", fsp: 3 })
-      .default(sql`CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)`)
-      .notNull(),
+    createdAt: timestamp("createdAt", { mode: "date", precision: 3 })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date", precision: 3 })
+      .notNull()
+      .defaultNow(),
   },
   (shoppingList) => ({
-    slugIdx: index("slug_idx").on(shoppingList.slug),
-    createdByIdIdx: index("createdById_idx").on(shoppingList.createdById),
+    slugIdx: uniqueIndex("shopping-list_shoppingList_slug_idx").on(
+      shoppingList.slug,
+    ),
+    createdByIdIdx: index("shopping-list_shoppingList_createdById_idx").on(
+      shoppingList.createdById,
+    ),
   }),
 );
 
@@ -111,20 +95,20 @@ export const shoppingListsRelations = relations(
 export const unitValues = ["kg", "g", "L", "ml", "pcs"] as const;
 
 export const shoppingListItems = projectTable("shoppingListItem", {
-  id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
+  id: bigserial("id", { mode: "number" }).primaryKey(),
   shoppingListId: bigint("shoppingListId", { mode: "number" }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
-  quantity: int("quantity"),
+  quantity: integer("quantity"),
   unit: varchar("unit", { length: 255, enum: unitValues }),
   createdById: varchar("createdById", { length: 255 }).notNull(),
   completedById: varchar("completedById", { length: 255 }),
-  completedAt: timestamp("completedAt", { mode: "date", fsp: 3 }),
-  createdAt: datetime("createdAt", { mode: "date", fsp: 3 })
-    .default(sql`CURRENT_TIMESTAMP(3)`)
-    .notNull(),
-  updatedAt: datetime("updatedAt", { mode: "date", fsp: 3 })
-    .default(sql`CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)`)
-    .notNull(),
+  completedAt: timestamp("completedAt", { mode: "date", precision: 3 }),
+  createdAt: timestamp("createdAt", { mode: "date", precision: 3 })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updatedAt", { mode: "date", precision: 3 })
+    .notNull()
+    .defaultNow(),
 });
 
 export const shoppingListItemsRelations = relations(
@@ -146,14 +130,11 @@ export const shoppingListItemsRelations = relations(
 );
 
 export const users = projectTable("user", {
-  id: varchar("id", { length: 255 }).notNull().primaryKey(),
-  name: varchar("name", { length: 255 }),
-  email: varchar("email", { length: 255 }).notNull(),
-  emailVerified: timestamp("emailVerified", {
-    mode: "date",
-    fsp: 3,
-  }).default(sql`CURRENT_TIMESTAMP(3)`),
-  image: varchar("image", { length: 255 }),
+  id: text("id").notNull().primaryKey(),
+  name: text("name"),
+  email: text("email").notNull(),
+  emailVerified: timestamp("emailVerified", { mode: "date" }),
+  image: text("image"),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -165,23 +146,24 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const accounts = projectTable(
   "account",
   {
-    userId: varchar("userId", { length: 255 }).notNull(),
-    type: varchar("type", { length: 255 })
-      .$type<AdapterAccount["type"]>()
-      .notNull(),
-    provider: varchar("provider", { length: 255 }).notNull(),
-    providerAccountId: varchar("providerAccountId", { length: 255 }).notNull(),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: text("type").$type<AdapterAccount["type"]>().notNull(),
+    provider: text("provider").notNull(),
+    providerAccountId: text("providerAccountId").notNull(),
     refresh_token: text("refresh_token"),
     access_token: text("access_token"),
-    expires_at: int("expires_at"),
-    token_type: varchar("token_type", { length: 255 }),
-    scope: varchar("scope", { length: 255 }),
+    expires_at: integer("expires_at"),
+    token_type: text("token_type"),
+    scope: text("scope"),
     id_token: text("id_token"),
-    session_state: varchar("session_state", { length: 255 }),
+    session_state: text("session_state"),
   },
   (account) => ({
-    compoundKey: primaryKey(account.provider, account.providerAccountId),
-    userIdIdx: index("userId_idx").on(account.userId),
+    compoundKey: primaryKey({
+      columns: [account.provider, account.providerAccountId],
+    }),
   }),
 );
 
@@ -189,19 +171,13 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
   user: one(users, { fields: [accounts.userId], references: [users.id] }),
 }));
 
-export const sessions = projectTable(
-  "session",
-  {
-    sessionToken: varchar("sessionToken", { length: 255 })
-      .notNull()
-      .primaryKey(),
-    userId: varchar("userId", { length: 255 }).notNull(),
-    expires: timestamp("expires", { mode: "date" }).notNull(),
-  },
-  (session) => ({
-    userIdIdx: index("userId_idx").on(session.userId),
-  }),
-);
+export const sessions = projectTable("session", {
+  sessionToken: text("sessionToken").notNull().primaryKey(),
+  userId: text("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  expires: timestamp("expires", { mode: "date" }).notNull(),
+});
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
   user: one(users, { fields: [sessions.userId], references: [users.id] }),
@@ -210,18 +186,17 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
 export const verificationTokens = projectTable(
   "verificationToken",
   {
-    identifier: varchar("identifier", { length: 255 }).notNull(),
-    token: varchar("token", { length: 255 }).notNull(),
+    identifier: text("identifier").notNull(),
+    token: text("token").notNull(),
     expires: timestamp("expires", { mode: "date" }).notNull(),
   },
   (vt) => ({
-    compoundKey: primaryKey(vt.identifier, vt.token),
+    compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
   }),
 );
 
 export type SelectShoppingList = InferSelectModel<typeof shoppingLists>;
 export type SelectShoppingListItem = InferSelectModel<typeof shoppingListItems>;
-export type SelectPost = InferSelectModel<typeof posts>;
 export type SelectUser = InferSelectModel<typeof users>;
 export type SelectAccount = InferSelectModel<typeof accounts>;
 export type SelectSession = InferSelectModel<typeof sessions>;

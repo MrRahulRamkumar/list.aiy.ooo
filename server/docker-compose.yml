@@ -12,7 +12,7 @@ services:
       - CORS_ORIGIN=${CORS_ORIGIN}
       - REDIS_URL=${REDIS_URL}
 
-  chat-app-2:
+  server-2:
     build:
       context: .
       dockerfile: Dockerfile
@@ -23,7 +23,7 @@ services:
       - CORS_ORIGIN=${CORS_ORIGIN}
       - REDIS_URL=${REDIS_URL}
 
-  chat-app-3:
+  server-3:
     build:
       context: .
       dockerfile: Dockerfile

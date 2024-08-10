@@ -7,11 +7,9 @@ import {
   DELETE_ITEM_CHANEL,
   NEW_ITEM_CHANNEL,
   CHANNELS,
-  Channel,
   JOIN_ROOM_CHANNEL,
 } from "./constants";
 import { Server } from "socket.io";
-import { randomUUID } from "crypto";
 import { ShoppingListItem } from "./types";
 
 declare module "fastify" {
@@ -34,13 +32,13 @@ declare module "fastify" {
   }
 }
 
-const UPSTASH_REDIS_REST_URL = process.env.UPSTASH_REDIS_REST_URL;
-if (!UPSTASH_REDIS_REST_URL) {
-  throw new Error("UPSTASH_REDIS_REST_URL is required");
+const REDIS_URL = process.env.REDIS_URL;
+if (!REDIS_URL) {
+  throw new Error("REDIS_URL is required");
 }
 
-const publisher = new Redis(UPSTASH_REDIS_REST_URL);
-const subscriber = new Redis(UPSTASH_REDIS_REST_URL);
+const publisher = new Redis(REDIS_URL);
+const subscriber = new Redis(REDIS_URL);
 
 async function buildServer() {
   const app = fastify();
